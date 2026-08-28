@@ -15,9 +15,9 @@ function AiButton() {
       {!isOpen ? (
         <button
           onClick={() => dispatch(setAiOpen(true))}
-          className="fixed  right-10 bottom-10 p-4 rounded-full bg-primary text-white hover:scale-90 duration-75 "
+          className="fixed  right-10 bottom-10 p-4 rounded-full bg-primary text-white text-2xl md:text-3xl hover:scale-90 duration-75 "
         >
-          <FaRobot size={40} />
+          <FaRobot />
         </button>
       ) : (
         <div>

@@ -76,83 +76,90 @@ function AiBox() {
   };
 
   return (
-    <div className="fixed bottom-10 right-5 z-50">
+    <div className="fixed bottom-3 right-3 z-50 sm:bottom-10 sm:right-5">
       {/* Ambient background */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/[0.06] blur-[130px]" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[360px] w-[90vw] max-w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/[0.06] blur-[110px] sm:h-[520px] sm:blur-[130px]" />
 
       {/* AI Window */}
-      <div className="relative flex h-[720px] w-full max-w-4xl flex-col overflow-hidden rounded-[30px] bg-[#0b0b0f] shadow-[0_30px_100px_rgba(0,0,0,0.75)]">
+      <div className="relative flex h-[min(82vh,720px)] w-[calc(100vw-1.5rem)] max-w-[560px] flex-col overflow-hidden rounded-[24px] bg-[#0b0b0f] shadow-[0_30px_100px_rgba(0,0,0,0.75)] sm:max-w-[520px] sm:rounded-[30px] md:max-w-[560px]">
         {/* ================= HEADER ================= */}
 
-        <header className="relative flex items-center justify-between px-7 py-5">
+        <header className="relative flex items-center justify-between px-4 py-4 sm:px-7 sm:py-5">
           {/* subtle header glow */}
           <div className="pointer-events-none absolute left-0 top-0 h-32 w-80 bg-primary/[0.06] blur-[70px]" />
 
-          <div className="relative flex items-center gap-4">
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent shadow-lg shadow-primary/10">
-              <RiGeminiLine size={26} className="text-primary" />
+          <div className="relative flex items-center gap-3 sm:gap-4">
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent shadow-lg shadow-primary/10 sm:h-12 sm:w-12">
+              <RiGeminiLine size={22} className="text-primary sm:size-[26px]" />
 
-              <span className="absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/40" />
+              <span className="absolute bottom-0.5 right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/40 sm:h-3 sm:w-3" />
             </div>
 
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-[17px] font-semibold tracking-tight text-white">
+                <h1 className="text-sm font-semibold tracking-tight text-white sm:text-[17px]">
                   AI Assistant
                 </h1>
 
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-medium uppercase tracking-widest text-primary">
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[8px] font-medium uppercase tracking-widest text-primary sm:text-[9px]">
                   Beta
                 </span>
               </div>
 
               <div className="mt-1 flex items-center gap-2">
-                <span className="text-xs text-emerald-400">Online</span>
+                <span className="text-[10px] text-emerald-400 sm:text-xs">
+                  Online
+                </span>
 
                 <span className="text-gray-700">•</span>
 
-                <span className="text-xs text-gray-600">Powered by Gemini</span>
+                <span className="text-[10px] text-gray-600 sm:text-xs">
+                  Powered by Gemini
+                </span>
               </div>
             </div>
           </div>
 
           <div className="relative flex items-center gap-1">
             <button
-              className="rounded-xl p-2.5 text-gray-600 transition-all hover:bg-white/[0.04] hover:text-gray-300"
+              className="rounded-xl p-2 text-gray-600 transition-all hover:bg-white/[0.04] hover:text-gray-300 sm:p-2.5"
               title="New conversation"
             >
-              <IoRefresh size={18} />
+              <IoRefresh size={16} className="sm:size-[18px]" />
             </button>
 
             <button
               onClick={() => dispatch(setAiOpen(false))}
-              className="rounded-xl p-2.5 text-gray-600 transition-all hover:bg-white/[0.04] hover:text-white"
+              className="rounded-xl p-2 text-gray-600 transition-all hover:bg-white/[0.04] hover:text-white sm:p-2.5"
               title="Close"
             >
-              <IoClose size={22} />
+              <IoClose size={18} className="sm:size-[22px]" />
             </button>
           </div>
         </header>
 
         {/* ================= CHAT ================= */}
 
-        <main className="flex-1 overflow-y-auto px-7 py-5 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
+        <main className="flex-1 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 sm:px-7 sm:py-5">
           {/* Welcome */}
           {messages.length === 1 && (
-            <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="relative mb-6">
+            <div className="flex flex-col items-center justify-center py-8 text-center sm:py-10">
+              <div className="relative mb-5 sm:mb-6">
                 <div className="absolute inset-0 rounded-[26px] bg-primary/20 blur-2xl" />
 
-                <div className="relative flex h-20 w-20 items-center justify-center rounded-[26px] bg-gradient-to-br from-primary/20 to-purple-500/10 shadow-2xl shadow-primary/10">
-                  <HiSparkles size={34} className="text-primary" />
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-[26px] bg-gradient-to-br from-primary/20 to-purple-500/10 shadow-2xl shadow-primary/10 sm:h-20 sm:w-20">
+                  <HiSparkles
+                    size={28}
+                    className="text-primary sm:size-[34px]"
+                  />
                 </div>
               </div>
 
-              <h2 className="text-2xl font-semibold tracking-tight text-white">
+              <h2 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">
                 How can I help?
               </h2>
 
-              <p className="mt-3 max-w-md text-sm leading-6 text-gray-500">
+              <p className="mt-3 max-w-md text-xs leading-6 text-gray-500 sm:text-sm">
                 Ask a question, get recommendations, explain something
                 complicated, or just start a conversation.
               </p>
@@ -160,32 +167,38 @@ function AiBox() {
           )}
 
           {/* Messages */}
-          <div className="mx-auto max-w-3xl space-y-8">
+          <div className="mx-auto max-w-3xl space-y-6 sm:space-y-8">
             {messages.map((message, index) => {
               const isAI = message.role === "AI";
 
               return (
                 <div
                   key={index}
-                  className={`group flex gap-4 ${
+                  className={`group flex gap-3 sm:gap-4 ${
                     isAI ? "items-start" : "flex-row-reverse items-start"
                   }`}
                 >
                   {/* Avatar */}
                   <div
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl sm:h-9 sm:w-9 ${
                       isAI
                         ? "bg-primary/10 text-primary"
                         : "bg-white/[0.07] text-gray-400"
                     }`}
                   >
-                    {isAI ? <BiSolidBot size={19} /> : <BiUser size={18} />}
+                    {isAI ? (
+                      <BiSolidBot size={16} className="sm:size-[19px]" />
+                    ) : (
+                      <BiUser size={15} className="sm:size-[18px]" />
+                    )}
                   </div>
 
                   {/* Content */}
-                  <div className={`max-w-[75%] ${!isAI ? "text-right" : ""}`}>
+                  <div
+                    className={`max-w-[80%] sm:max-w-[75%] ${!isAI ? "text-right" : ""}`}
+                  >
                     <div
-                      className={`mb-2 flex items-center gap-2 text-[10px] uppercase tracking-wider text-gray-700 ${
+                      className={`mb-2 flex items-center gap-2 text-[9px] uppercase tracking-wider text-gray-700 sm:text-[10px] ${
                         !isAI ? "justify-end" : ""
                       }`}
                     >
@@ -197,7 +210,7 @@ function AiBox() {
                     </div>
 
                     <div
-                      className={`px-5 py-3.5 text-[13px] leading-6 ${
+                      className={`px-4 py-3 text-[12px] leading-6 sm:px-5 sm:py-3.5 sm:text-[13px] ${
                         isAI
                           ? "rounded-2xl rounded-tl-md bg-white/[0.045] text-gray-300 shadow-lg shadow-black/10"
                           : "rounded-2xl rounded-tr-md bg-gradient-to-br from-primary to-primary/80 text-white shadow-xl shadow-primary/10"
@@ -245,14 +258,14 @@ function AiBox() {
 
         {/* ================= INPUT ================= */}
 
-        <footer className="px-7 pb-6 pt-3">
+        <footer className="px-4 pb-4 pt-2 sm:px-7 sm:pb-6 sm:pt-3">
           {/* Suggestions */}
-          <div className="mx-auto mb-4 flex max-w-3xl gap-2 overflow-x-auto scrollbar-none">
+          <div className="mx-auto mb-4 flex max-w-3xl gap-2 overflow-x-auto pb-1 scrollbar-none">
             {suggestions.map((suggestion) => (
               <button
                 key={suggestion}
                 onClick={() => setInput(suggestion)}
-                className="shrink-0 rounded-full bg-white/[0.035] px-4 py-2 text-[11px] text-gray-500 transition-all hover:bg-primary/[0.08] hover:text-gray-300"
+                className="shrink-0 rounded-full bg-white/[0.035] px-3 py-2 text-[10px] text-gray-500 transition-all hover:bg-primary/[0.08] hover:text-gray-300 sm:px-4 sm:text-[11px]"
               >
                 {suggestion}
               </button>
@@ -261,7 +274,7 @@ function AiBox() {
 
           {/* Input container */}
           <div className="mx-auto max-w-3xl">
-            <div className="rounded-[22px] bg-white/[0.045] p-2 shadow-2xl shadow-black/20 transition-all focus-within:bg-white/[0.06]">
+            <div className="rounded-[18px] bg-white/[0.045] p-2 shadow-2xl shadow-black/20 transition-all focus-within:bg-white/[0.06] sm:rounded-[22px]">
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -273,16 +286,16 @@ function AiBox() {
                 }}
                 placeholder="Ask AI Assistant anything..."
                 rows={2}
-                className="w-full resize-none bg-transparent px-4 py-3 text-sm leading-6 text-gray-200 outline-none placeholder:text-gray-600"
+                className="w-full resize-none bg-transparent px-3 py-2.5 text-sm leading-6 text-gray-200 outline-none placeholder:text-gray-600 sm:px-4 sm:py-3"
               />
 
-              <div className="flex items-center justify-between px-2 pb-1">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2 px-1 pb-1 sm:px-2">
+                <div className="flex min-w-0 items-center gap-2">
                   <button className="rounded-xl p-2 text-gray-600 transition hover:bg-white/[0.05] hover:text-gray-300">
-                    <IoMicOutline size={18} />
+                    <IoMicOutline size={16} className="sm:size-[18px]" />
                   </button>
 
-                  <span className="text-[10px] text-gray-700">
+                  <span className="truncate text-[9px] text-gray-700 sm:text-[10px]">
                     AI may occasionally make mistakes
                   </span>
                 </div>
@@ -290,14 +303,14 @@ function AiBox() {
                 <button
                   onClick={handleSend}
                   disabled={!input.trim()}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/30 disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:scale-100"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/30 disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:scale-100"
                 >
                   <RiSendPlane2Fill size={17} />
                 </button>
               </div>
             </div>
 
-            <p className="mt-2 text-center text-[10px] text-gray-700">
+            <p className="mt-2 text-center text-[9px] text-gray-700 sm:text-[10px]">
               Enter to send · Shift + Enter for new line
             </p>
           </div>
