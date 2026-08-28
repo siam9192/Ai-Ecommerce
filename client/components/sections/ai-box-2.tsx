@@ -76,7 +76,7 @@ function AiBox() {
   };
 
   return (
-    <div className="fixed bottom-10 right-5 z-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-xl">
       {/* Ambient background */}
       <div className="pointer-events-none absolute left-1/2 top-1/2 h-[600px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/[0.06] blur-[130px]" />
 

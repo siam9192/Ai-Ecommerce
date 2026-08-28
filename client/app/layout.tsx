@@ -36,7 +36,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </Provider>
         <Footer />
-        <AiButton/>
+
       </body>
     </html>
   );
