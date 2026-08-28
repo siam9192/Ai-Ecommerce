@@ -6,7 +6,6 @@ import Footer from "@/components/sections/footer";
 import Provider from "@/providers/provider";
 import AiButton from "@/components/ui/ai-button";
 
-
 const poppinsSans = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
@@ -31,12 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${poppinsSans.variable} ${latoSans.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <Header />
-        <Provider>
-          {children}
-        </Provider>
-        <Footer />
-
+        <Provider>{children}</Provider>
       </body>
     </html>
   );

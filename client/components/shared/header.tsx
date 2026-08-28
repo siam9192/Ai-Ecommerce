@@ -62,15 +62,17 @@ function Header() {
           {/* Actions */}
           <div className="flex items-center  gap-1 md:gap-3">
             {/* Wishlist */}
-            <button
+            <Link
+              href="/wishlist"
               className="rounded-xl p-2.5 text-foreground transition hover:bg-muted hover:text-primary"
               aria-label="Wishlist"
             >
               <FiHeart size={20} />
-            </button>
+            </Link>
 
             {/* Cart */}
-            <button
+            <Link
+              href="/cart"
               className="relative rounded-xl p-2.5 text-foreground transition hover:bg-muted hover:text-primary"
               aria-label="Shopping cart"
             >
@@ -79,7 +81,7 @@ function Header() {
               <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white">
                 2
               </span>
-            </button>
+            </Link>
 
             {/* Ai button */}
 
@@ -94,6 +96,13 @@ function Header() {
             >
               <FiUser size={17} />
               <span>Login</span>
+            </Link>
+
+            <Link
+              href="/my-orders"
+              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:border-primary hover:text-primary"
+            >
+              My Orders
             </Link>
           </div>
         </div>
