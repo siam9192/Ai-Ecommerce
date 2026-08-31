@@ -1,30 +1,24 @@
-import { createSlice } from '@reduxjs/toolkit'
-import type { PayloadAction } from '@reduxjs/toolkit'
+import { createSlice } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
 
 export interface AppStateSlice {
-      isAiOpen:boolean
+  isAiOpen: boolean;
 }
 
+const initialState: AppStateSlice = {
+  isAiOpen: false,
+};
 
-const initialState:AppStateSlice = {
- isAiOpen:false
-} 
-
-
-
-export const counterSlice = createSlice({
-  name: 'counter',
+export const appStateSlice = createSlice({
+  name: "appState",
   initialState,
   reducers: {
-    setAiOpen:(state,action:PayloadAction<boolean>)=>{
-      state.isAiOpen =  action.payload
-    }
-  }
-})
+    setAiOpen: (state, action: PayloadAction<boolean>) => {
+      state.isAiOpen = action.payload;
+    },
+  },
+});
 
+export const { setAiOpen } = appStateSlice.actions;
 
-
-// Action creators are generated for each case reducer function
-export const {setAiOpen} = counterSlice.actions
-
-export default counterSlice.reducer
+export default appStateSlice.reducer;

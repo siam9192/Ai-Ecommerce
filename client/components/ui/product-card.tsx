@@ -14,7 +14,7 @@ function ProductCard({ product }: Props) {
     >
       {/* Image */}
       <Link
-        href={`/products/${product.name.toLowerCase().replaceAll(" ", "-")}`}
+        href={`/products/${product.slug}`}
         className="block"
       >
         <div className="relative aspect-square overflow-hidden bg-muted">

@@ -1,10 +1,14 @@
+import { Review } from "./review.type";
 
 export interface Product {
-    name:string,
-    price:number,
-  
-    description:string
-    images:string[],
-    stock:number,
-    rating:number
+  id:number
+  name: string;
+  slug:string
+  price: number;
+  description: string;
+  images: string[];
+  stock: number;
+  rating: number;
+  category?: string;
+  reviews?: Review[];
 }
