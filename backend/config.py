@@ -1,17 +1,17 @@
 import os
-from pydantic_settings import BaseSettings
 from functools import lru_cache
 
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-class Settings (BaseSettings):
+
+class Settings(BaseSettings):
     # App
     app_name: str = "E-Commerce API"
     app_version: str = "1.0.0"
     debug: bool = False
 
     # Database
-    database_url: str = "postgresql://postgres:1234@localhost:5432/ai-typing"
-    # For local development: sqlite:///./ecommerce.db
+    database_url: str = "sqlite:///./ecommerce.db"
 
     # Security
     secret_key: str = "76357jhdhjvccsdadnkjbcdpomnulkjjdl;l"
@@ -36,15 +36,14 @@ class Settings (BaseSettings):
     sslcommerz_sandbox: bool = True
 
     # CORS
-    allowed_origins: list = ["http://localhost:3000", "http://localhost:8080"]
+    allowed_origins: list[str] = [
+        "http://localhost:3000", "http://localhost:8080"]
 
     # Pagination
     default_page_size: int = 20
     max_page_size: int = 100
 
-    class config:
-        env_file = ".env"
-        case_sensitive = False
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
 
 @lru_cache
