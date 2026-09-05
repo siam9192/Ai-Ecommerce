@@ -64,6 +64,36 @@ class ToolFindProductsPayload(BaseModel):
         default=None, ge=1, description="Filter products limit")
 
 
+class FindProductsPayload(BaseModel):
+    max_price: Optional[float] = Field(
+        default=None,
+        ge=0,
+        description="Find products whose main/current price is less than or equal to this amount.",
+    )
+    min_price: Optional[float] = Field(
+        default=None,
+        ge=0,
+        description="Find products whose main/current price is greater than or equal to this amount.",
+    )
+    category_name: Optional[str] = Field(
+        default=None,
+        description="Filter products by category. Use the category provided or implied by the user.",
+    )
+    keyword: Optional[str] = Field(
+        default=None,
+        description="Search for products related to this keyword or concept. Use this for general product searches when an exact name is not provided.",
+    )
+    in_stock: Optional[bool] = Field(
+        default=None,
+        description="Filter products by availability. Set to true for products currently in stock and false for products that are out of stock.",
+    )
+   
+    
+
+     
+    
+
+
 class AddProductPayload(BaseModel):
     name: str = Field(min_length=1, max_length=200, description="Product name")
     description: str = Field(

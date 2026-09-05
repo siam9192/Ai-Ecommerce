@@ -41,9 +41,8 @@ The final response tool must be the **last tool called** for the user's request.
 Pass the final response tool:
 
 * A concise summary of what was done.
-* The actual results returned by previous tools.
 * Any relevant errors or limitations.
-* A clear response that can be shown directly to the user.
+* A clear response for tha last call tool named final response.
 
 Do not call any other tool after the final response tool.
 

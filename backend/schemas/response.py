@@ -2,6 +2,8 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field
 from typing import Literal, Optional, Any
 from pydantic import BaseModel, Field
+from models.product import ProductStatus
+from datetime import datetime
 
 
 class AIActions(BaseModel):
@@ -61,3 +63,22 @@ class AIFinalResponse(BaseModel):
         default_factory=AIActions,
         description="Actions that the frontend/client should perform."
     )
+
+
+class ProductResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str]
+    regular_price: int
+    main_price: int
+    images: list[str]
+    available_stock: int
+    status: ProductStatus
+    created_at: datetime
+    updated_at: datetime
+    wish_listed:Optional[bool]
+    cart_item_listed:Optional[bool]
+
+
+
+

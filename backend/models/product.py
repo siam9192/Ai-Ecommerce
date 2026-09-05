@@ -9,8 +9,8 @@ from database import Base
 
 
 class ProductStatus(str, enum.Enum):
-    RUNNING = "running"
-    PAUSED = "paused"
+    ACTIVE = "active"
+    INACTIVE = "inactive"
 
 
 class Product(Base):
@@ -27,7 +27,7 @@ class Product(Base):
     available_stock = Column(Integer, default=0, nullable=False)
     rating = Column(Integer, default=0)
     status = Column(Enum(ProductStatus),
-                    default=ProductStatus.RUNNING, nullable=False)
+                    default=ProductStatus.ACTIVE, nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

@@ -12,6 +12,11 @@ class UserStatus(str, enum.Enum):
     BLOCKED = "blocked"
 
 
+class UserRole(str,enum.Enum):
+    CUSTOMER = "customer",
+    ADMIN = "admin"
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -21,6 +26,7 @@ class User(Base):
     google_id = Column(String, nullable=True)
     full_name = Column(String(50), nullable=False)
     profile_picture = Column(String, nullable=True)
+    role = Column(Enum(UserRole),default=UserRole.CUSTOMER,nullable=False)
     status = Column(Enum(UserStatus),
                     default=UserStatus.ACTIVE, nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
@@ -52,3 +58,6 @@ class User(Base):
             name="check_auth_method"
         ),
     )
+
+
+

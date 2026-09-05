@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from models import Product, ProductImages
 from models.product import ProductStatus
 from schemas.product import AddProductPayload, ToolFindProductsPayload, UpdateProductPayload
+from helpers import generate_slug
 
 
 class ProductTool:
@@ -104,7 +105,7 @@ class ProductTool:
     def update_product(product_id: int, payload: UpdateProductPayload, db: Session):
         product = db.query(Product).filter(Product.id == product_id).first()
         if product is None:
-            return None
+            return "Product not found"
 
         if payload.name is not None:
             product.name = payload.name.strip()
@@ -145,7 +146,11 @@ class ProductTool:
         db.refresh(product)
         return product
 
+    def soft_delete_product(product_id: int, db: Session):
+        product = db.query(Product).filter(Product.id == product_id).first()
+        if product is None:
+            return "Product not found"
 
-def generate_slug(name: str):
-    raw_slug = "-".join(part for part in name.lower().strip().split() if part)
-    return raw_slug or "product"
+        db.query(Product).filter(Product.id == product_id).delete()
+        
+        return True
