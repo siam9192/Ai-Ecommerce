@@ -1,17 +1,15 @@
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
-
 from models import Product, ProductImages
 from models.product import ProductStatus
 from schemas.product import AddProductPayload, ToolFindProductsPayload, UpdateProductPayload
 
 
-class ProductTools:
-    @staticmethod
+class ProductTool:
+
     def find_product_by_id(product_id: int, db: Session):
         return db.query(Product).filter(Product.id == product_id).first()
 
-    @staticmethod
     def find_products(payload: ToolFindProductsPayload, db: Session):
         query = db.query(Product)
 
@@ -70,7 +68,6 @@ class ProductTools:
 
         return query.all()
 
-    @staticmethod
     def add_product(payload: AddProductPayload, db: Session):
         slug = generate_slug(payload.name)
         counter = 2
@@ -104,15 +101,19 @@ class ProductTools:
         db.refresh(product)
         return product
 
-    @staticmethod
     def update_product(product_id: int, payload: UpdateProductPayload, db: Session):
         product = db.query(Product).filter(Product.id == product_id).first()
         if product is None:
             return None
 
         if payload.name is not None:
-            product.name = payload.name
-            product.slug = generate_slug(payload.name)
+            product.name = payload.name.strip()
+            slug = generate_slug(payload.name)
+            counter = 2
+            while db.query(Product).filter(Product.slug == slug).first() is not None:
+                slug = generate_slug(f"{payload.name} {counter}")
+                counter += 1
+            product.slug = slug
 
         if payload.description is not None:
             product.description = payload.description

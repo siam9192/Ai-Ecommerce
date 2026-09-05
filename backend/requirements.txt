@@ -3,3 +3,5 @@ python-dotenv==1.2.3
 fastapi==0.141.1
 pydantic==2.13.5
 pydantic-settings==2.14.2
+langchain==1.4.0
+langchain-google-genai==4.4.0

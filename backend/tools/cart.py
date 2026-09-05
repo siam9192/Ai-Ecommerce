@@ -5,11 +5,10 @@ from schemas.cart import AddCartItemPayload, UpdateCartItemPayload
 
 
 class CartTools:
-    @staticmethod
+
     def get_cart(user_id: int, db: Session):
         return db.query(CartItem).filter(CartItem.user_id == user_id).order_by(CartItem.created_at.desc()).all()
 
-    @staticmethod
     def get_cart_item(user_id: int, product_id: int, db: Session):
         return (
             db.query(CartItem)
@@ -17,7 +16,6 @@ class CartTools:
             .first()
         )
 
-    @staticmethod
     def add_item(payload: AddCartItemPayload, db: Session):
         user = db.query(User).filter(User.id == payload.user_id).first()
         if user is None:
@@ -28,7 +26,7 @@ class CartTools:
         if product is None:
             raise ValueError("Product not found")
 
-        existing = CartTools.get_cart_item(
+        existing = get_cart_item(
             payload.user_id, payload.product_id, db)
         if existing is not None:
             existing.quantity += payload.quantity
@@ -46,7 +44,6 @@ class CartTools:
         db.refresh(cart_item)
         return cart_item
 
-    @staticmethod
     def update_item(user_id: int, product_id: int, payload: UpdateCartItemPayload, db: Session):
         cart_item = CartTools.get_cart_item(user_id, product_id, db)
         if cart_item is None:
@@ -59,9 +56,8 @@ class CartTools:
         db.refresh(cart_item)
         return cart_item
 
-    @staticmethod
     def remove_item(user_id: int, product_id: int, db: Session):
-        cart_item = CartTools.get_cart_item(user_id, product_id, db)
+        cart_item = get_cart_item(user_id, product_id, db)
         if cart_item is None:
             return False
 
@@ -69,7 +65,6 @@ class CartTools:
         db.commit()
         return True
 
-    @staticmethod
     def clear_cart(user_id: int, db: Session):
         deleted = db.query(CartItem).filter(
             CartItem.user_id == user_id).delete()
