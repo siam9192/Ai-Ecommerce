@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-
+from fastapi import HTTPException,status
 from models import CartItem, Product, User
 from schemas.cart import AddCartItemPayload, UpdateCartItemPayload
 
@@ -24,10 +24,9 @@ class CartService:
 
     @staticmethod
     def add_item(payload: AddCartItemPayload, db: Session):
-        if db.query(User).filter(User.id == payload.user_id).first() is None:
-            raise ValueError("User not found")
+    
         if db.query(Product).filter(Product.id == payload.product_id).first() is None:
-            raise ValueError("Product not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Product not found")
 
         item = CartService.get_cart_item(
             payload.user_id, payload.product_id, db)
@@ -60,7 +59,7 @@ class CartService:
     def remove_item(user_id: int, product_id: int, db: Session):
         item = CartService.get_cart_item(user_id, product_id, db)
         if item is None:
-            return False
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Item not found")
         db.delete(item)
         db.commit()
         return True

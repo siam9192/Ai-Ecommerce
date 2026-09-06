@@ -1,9 +1,16 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, JSON
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, JSON, Enum
 from sqlalchemy.orm import relationship
 
 from database import Base
+import enum
+
+
+class OrderStatus (enum.Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    DELIVERED = "delivered"
 
 
 class Order(Base):
@@ -13,6 +20,7 @@ class Order(Base):
     customer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     total_price = Column(Float, nullable=False)
     delivery_address = Column(JSON, nullable=True)
+    status = Column(Enum(OrderStatus), default=OrderStatus.PENDING)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
         DateTime,

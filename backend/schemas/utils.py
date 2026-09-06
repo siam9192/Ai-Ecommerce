@@ -22,6 +22,7 @@ class Meta(BaseModel):
 
 
 class Response(BaseModel, Generic[T]):
+    message:Optional[str]
     success: bool
     status_code: int
     data: T

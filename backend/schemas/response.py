@@ -76,9 +76,37 @@ class ProductResponse(BaseModel):
     status: ProductStatus
     created_at: datetime
     updated_at: datetime
-    wish_listed:Optional[bool]
-    cart_item_listed:Optional[bool]
+    wish_listed: Optional[bool]
+    cart_item_listed: Optional[bool]
 
 
+class __Customer(BaseModel):
+    id: int
+    name: str
+    profile_picture: Optional[str]
 
 
+class __Product(BaseModel):
+    id: int
+    name: str
+    images: list[str]
+
+
+class __OrderItems(BaseModel):
+    id: int
+    product_id: int
+    product: __Product
+    quantity: int
+    per_price: float
+
+
+class OrderResponse(BaseModel):
+    id: int
+    customer_id: int
+    total_price: float
+    delivery_address: dict
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    customer: Optional[__Customer]
+    items: list[__OrderItems]

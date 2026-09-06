@@ -3,7 +3,7 @@ from schemas.utils import PaginationQuery, Response, Meta
 from models import Product, ProductImages
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import or_
-from helpers import generate_slug
+from helpers import generate_slug, calculate_pagination
 from schemas.response import ProductResponse
 from schemas.utils import AuthUser
 from fastapi import status
@@ -44,7 +44,12 @@ class ProductsService:
 
         db.commit()
         db.refresh(product)
-        return product
+        return Response(
+            success=True,
+            status_code=status.HTTP_200_OK,
+            message="Product created successfully",
+            data=product
+        )
 
     def update_product(product_id: int, payload: UpdateProductPayload, db: Session):
         product = db.query(Product).filter(Product.id == product_id).first()
@@ -88,7 +93,12 @@ class ProductsService:
 
         db.commit()
         db.refresh(product)
-        return product
+        return Response(
+            data=product,
+            success=True,
+            status_code=status.HTTP_200_OK,
+            message="Product updated successfully"
+        )
 
     def soft_delete_product(product_id: int, db: Session):
         product = db.query(Product).filter(Product.id == product_id).first()
@@ -97,7 +107,12 @@ class ProductsService:
 
         db.query(Product).filter(Product.id == product_id).delete()
 
-        return True
+        return Response(
+            data=True,
+            success=True,
+            status_code=status.HTTP_200_OK,
+            message="Product deleted successfully"
+        )
 
     def find_products(payload: FindProductsPayload, pagination_query: PaginationQuery, db: Session, current_user: Optional[AuthUser] = None):
         query = db.query(Product).filter(Product.is_deleted == False)
@@ -121,7 +136,8 @@ class ProductsService:
         if current_user is not None or current_user.role == UserRole.CUSTOMER:
             query.filter(Product.status == ProductStatus.ACTIVE)
 
-        limit, skip, sort_by, sort_order, page = pagination_query
+        limit, skip, sort_by, sort_order, page = calculate_pagination(
+            pagination_query)
         query = query.limit(limit).offset(skip)
         count = query.count()
 
@@ -154,6 +170,9 @@ class ProductsService:
             for product in products
         ]
         result = Response(
+            status_code=status.HTTP_200_OK,
+            success=True,
+            message="Products retrieved successfully",
             data=product_result,
             meta=Meta(
                 page=page,
@@ -189,5 +208,6 @@ class ProductsService:
         return Response(
             data=product,
             success=True,
-            status_code=status.HTTP_200_OK
+            status_code=status.HTTP_200_OK,
+            message="Product retrieved successfully"
         )
