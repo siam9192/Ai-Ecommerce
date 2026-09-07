@@ -37,12 +37,11 @@ def get_orders(
 
 @router.post("/cart")
 def create_order(
-    customer_id: int,
     delivery_address: DeliveryAddress,
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return OrderService.create_order(customer_id, delivery_address.model_dump(), db)
+    return OrderService.create_order(current_user.id, delivery_address.model_dump(), db)
 
 
 @router.post("/direct")

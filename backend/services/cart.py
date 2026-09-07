@@ -36,7 +36,7 @@ class CartService:
         )
 
     @staticmethod
-    def add_item(payload: AddCartItemPayload, db: Session):
+    def add_item(user_id:int,payload: AddCartItemPayload, db: Session):
 
         if db.query(Product).filter(Product.id == payload.product_id).first() is None:
             raise HTTPException(
@@ -45,14 +45,14 @@ class CartService:
         item = (
             db.query(CartItem)
             .filter(
-                CartItem.user_id == payload.user_id,
+                CartItem.user_id == user_id,
                 CartItem.product_id == payload.product_id,
             )
             .first()
         )
         if item is None:
             item = CartItem(
-                user_id=payload.user_id,
+                user_id=user_id,
                 product_id=payload.product_id,
                 quantity=payload.quantity,
             )

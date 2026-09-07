@@ -37,8 +37,8 @@ class WishlistService:
         )
 
     @staticmethod
-    def add_item(payload: AddWishlistItemPayload, db: Session):
-        if db.query(User).filter(User.id == payload.user_id).first() is None:
+    def add_item(user_id:int,payload: AddWishlistItemPayload, db: Session):
+        if db.query(User).filter(User.id == user_id).first() is None:
             raise ValueError("User not found")
         if db.query(Product).filter(Product.id == payload.product_id).first() is None:
             raise ValueError("Product not found")
@@ -46,7 +46,7 @@ class WishlistService:
         item = (
             db.query(WishlistItem)
             .filter(
-                WishlistItem.user_id == payload.user_id,
+                WishlistItem.user_id == user_id,
                 WishlistItem.product_id == payload.product_id,
             )
             .first()
@@ -59,7 +59,7 @@ class WishlistService:
                 data=item,
             )
 
-        item = WishlistItem(user_id=payload.user_id,
+        item = WishlistItem(user_id=user_id,
                             product_id=payload.product_id)
         db.add(item)
         db.commit()
@@ -72,9 +72,9 @@ class WishlistService:
         )
 
     @staticmethod
-    def remove_item(payload: RemoveWishlistItemPayload, db: Session):
+    def remove_item(user_id:int,payload: RemoveWishlistItemPayload, db: Session):
         item_response = WishlistService.get_wishlist_item(
-            payload.user_id, payload.product_id, db)
+       user_id, payload.product_id, db)
         if item_response.data is None:
             return Response(
                 success=False,

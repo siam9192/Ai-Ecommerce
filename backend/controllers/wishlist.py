@@ -46,13 +46,12 @@ def remove_wishlist_item(
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return WishlistService.remove_item(payload, db)
+    return WishlistService.remove_item(current_user.id,payload, db)
 
 
 @router.delete("/{user_id}")
 def clear_wishlist(
-    user_id: int,
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return WishlistService.clear_wishlist(user_id, db)
+    return WishlistService.clear_wishlist(current_user.id, db)

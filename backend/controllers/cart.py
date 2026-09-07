@@ -14,21 +14,20 @@ router = APIRouter(prefix="/cart", tags=["Cart"])
 
 @router.get("/{user_id}")
 def get_cart(
-    user_id: int,
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return CartService.get_cart(user_id, db)
+    return CartService.get_cart(current_user.id, db)
 
 
-@router.get("/{user_id}/items/{product_id}")
+@router.get("/items/{product_id}")
 def get_cart_item(
     user_id: int,
     product_id: int,
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return CartService.get_cart_item(user_id, product_id, db)
+    return CartService.get_cart_item(current_user.id, product_id, db)
 
 
 @router.post("/items")
@@ -37,34 +36,31 @@ def add_cart_item(
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return CartService.add_item(payload, db)
+    return CartService.add_item(current_user.id, payload, db)
 
 
-@router.patch("/{user_id}/items/{product_id}")
+@router.patch("/items/{product_id}")
 def update_cart_item(
-    user_id: int,
     product_id: int,
     payload: UpdateCartItemPayload,
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return CartService.update_item(user_id, product_id, payload, db)
+    return CartService.update_item(current_user.id, product_id, payload, db)
 
 
 @router.delete("/{user_id}/items/{product_id}")
 def remove_cart_item(
-    user_id: int,
     product_id: int,
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return CartService.remove_item(user_id, product_id, db)
+    return CartService.remove_item(current_user.id, product_id, db)
 
 
 @router.delete("/{user_id}")
 def clear_cart(
-    user_id: int,
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return CartService.clear_cart(user_id, db)
+    return CartService.clear_cart(current_user.id, db)
