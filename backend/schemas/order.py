@@ -3,6 +3,7 @@ from typing import Optional
 from models.order import OrderStatus
 from datetime import datetime
 
+
 class DeliveryAddress(BaseModel):
     street: str = Field(
         description="Street address, house number, road name, or other detailed location information."
@@ -58,6 +59,3 @@ class ToolFilterOrderPayload(BaseModel):
         default=None,
         description="Unique ID of the order to retrieve."
     )
-
-
-   

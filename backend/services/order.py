@@ -5,7 +5,7 @@ from schemas.order import ToolDirectOrderPayload, ToolFilterOrderPayload
 from schemas.utils import AuthUser, PaginationQuery
 from models.users import UserRole
 from schemas.utils import Response, Meta
-from schemas.response import OrderResponse, __OrderItems, __Product
+from schemas.response import OrderResponse, OrderItemResponse, ProductResponseItem
 
 
 class OrderService:
@@ -40,12 +40,12 @@ class OrderService:
             total_price=order.total_price,
             delivery_address=order.delivery_address,
             items=[
-                __OrderItems(
+                OrderItemResponse(
                     id=order_item.id,
                     product_id=order_item.product_id,
                     quantity=order_item.quantity,
                     per_price=order_item.per_price,
-                    product=__Product(
+                    product=ProductResponseItem(
                         id=order_item.product.id,
                         name=order_item.product.name,
                         images=[

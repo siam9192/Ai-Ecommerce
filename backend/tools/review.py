@@ -70,7 +70,3 @@ class ReviewTools:
         db.delete(review)
         db.commit()
         return True
-    
-
-    
-    

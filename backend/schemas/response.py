@@ -80,22 +80,22 @@ class ProductResponse(BaseModel):
     cart_item_listed: Optional[bool]
 
 
-class __Customer(BaseModel):
+class CustomerResponse(BaseModel):
     id: int
     name: str
     profile_picture: Optional[str]
 
 
-class __Product(BaseModel):
+class ProductResponseItem(BaseModel):
     id: int
     name: str
     images: list[str]
 
 
-class __OrderItems(BaseModel):
+class OrderItemResponse(BaseModel):
     id: int
     product_id: int
-    product: __Product
+    product: ProductResponseItem
     quantity: int
     per_price: float
 
@@ -108,5 +108,5 @@ class OrderResponse(BaseModel):
     status: str
     created_at: datetime
     updated_at: datetime
-    customer: Optional[__Customer]
-    items: list[__OrderItems]
+    customer: Optional[CustomerResponse]
+    items: list[OrderItemResponse]

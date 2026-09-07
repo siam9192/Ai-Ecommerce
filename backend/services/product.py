@@ -1,6 +1,6 @@
 from schemas.product import AddProductPayload, UpdateProductPayload, ProductStatus, FindProductsPayload
 from schemas.utils import PaginationQuery, Response, Meta
-from models import Product, ProductImages
+from models import Product, ProductImages, CartItem, WishlistItem
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import or_
 from helpers import generate_slug, calculate_pagination
@@ -133,17 +133,15 @@ class ProductsService:
             if payload.max_price is not None:
                 query = query.filter(Product.main_price <=
                                      payload.max_price)
-        if current_user is not None or current_user.role == UserRole.CUSTOMER:
-            query.filter(Product.status == ProductStatus.ACTIVE)
+        if current_user is not None and current_user.role == UserRole.CUSTOMER:
+            query = query.filter(Product.status == ProductStatus.ACTIVE)
 
         limit, skip, sort_by, sort_order, page = calculate_pagination(
             pagination_query)
         query = query.limit(limit).offset(skip)
         count = query.count()
 
-        if sort_by:
-            sort_column = getattr(Product, sort_by, None)
-
+        sort_column = getattr(Product, sort_by, None) if sort_by else None
         if sort_column:
             if sort_order == "desc":
                 query = query.order_by(sort_column.desc())
@@ -154,11 +152,31 @@ class ProductsService:
             .options(selectinload(Product.images))
             .all()
         )
+
+        cart_items_products_id = set()
+        wishlist_items_products_id = set()
+        if current_user is not None and current_user.role == UserRole.CUSTOMER:
+            product_ids = [product.id for product in products]
+            cart_items_products_id = {
+                product_id
+                for (product_id,) in db.query(CartItem.product_id).filter(
+                    CartItem.user_id == current_user.id,
+                    CartItem.product_id.in_(product_ids),
+                ).all()
+            }
+            wishlist_items_products_id = {
+                product_id
+                for (product_id,) in db.query(WishlistItem.product_id).filter(
+                    WishlistItem.user_id == current_user.id,
+                    WishlistItem.product_id.in_(product_ids),
+                ).all()
+            }
+
         product_result = [
             ProductResponse(
                 id=product.id,
                 name=product.name,
-                description=product.description[0, 100],
+                description=product.description[:100],
                 regular_price=product.regular_price,
                 main_price=product.main_price,
                 images=[image.image_url for image in product.images],
@@ -166,6 +184,8 @@ class ProductsService:
                 status=product.status,
                 created_at=product.created_at,
                 updated_at=product.updated_at,
+                wish_listed=product.id in wishlist_items_products_id,
+                cart_item_listed=product.id in cart_items_products_id
             )
             for product in products
         ]
@@ -184,14 +204,28 @@ class ProductsService:
         return result
 
     def find_product_by_slug(slug: str, db: Session, current_user: AuthUser = None):
-        product = db.query(Product).filter(
-            Product.slug == slug, Product.is_deleted == False).first()
+        query = db.query(Product).filter(
+            Product.slug == slug, Product.is_deleted == False)
 
-        if current_user is not None or current_user.role == UserRole.CUSTOMER:
-            product.filter(Product.status == ProductStatus.ACTIVE)
+        if current_user is not None and current_user.role == UserRole.CUSTOMER:
+            query = query.filter(Product.status == ProductStatus.ACTIVE)
+
+        product = query.first()
 
         if product is None or product.is_deleted:
             return "Product is not found"
+
+        wish_listed = False
+        cart_item_listed = False
+        if current_user is not None and current_user.role == UserRole.CUSTOMER:
+            wish_listed = db.query(WishlistItem.id).filter(
+                WishlistItem.user_id == current_user.id,
+                WishlistItem.product_id == product.id,
+            ).first() is not None
+            cart_item_listed = db.query(CartItem.id).filter(
+                CartItem.user_id == current_user.id,
+                CartItem.product_id == product.id,
+            ).first() is not None
 
         product = ProductResponse(id=product.id,
                                   name=product.name,
@@ -203,7 +237,9 @@ class ProductsService:
                                   available_stock=product.available_stock,
                                   status=product.status,
                                   created_at=product.created_at,
-                                  updated_at=product.updated_at,)
+                                  updated_at=product.updated_at,
+                                  wish_listed=wish_listed,
+                                  cart_item_listed=cart_item_listed)
 
         return Response(
             data=product,

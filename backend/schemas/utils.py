@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, TypeVar, Generic, Any
 from models.users import UserRole
 
+
 class PaginationQuery (BaseModel):
     limit: Optional[int] = Field(default=10, description="Data limit")
     page: Optional[int] = Field(default=1, description="Data limit")
@@ -22,7 +23,7 @@ class Meta(BaseModel):
 
 
 class Response(BaseModel, Generic[T]):
-    message:Optional[str]
+    message: Optional[str]
     success: bool
     status_code: int
     data: T
@@ -30,5 +31,5 @@ class Response(BaseModel, Generic[T]):
 
 
 class AuthUser (BaseModel):
-    id:str
-    role:UserRole
+    id: int
+    role: UserRole
