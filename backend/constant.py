@@ -188,7 +188,7 @@ products_ids (optional):
 order_ids (optional):
 ```
 
-Use this state info when it is relevant to the user's request for you have call the  get_user_app_state tool first.
+Use this state info when it is relevant to the user's request those app state data included with first user message.
 
 Do not assume that optional or missing state values exist.
 
