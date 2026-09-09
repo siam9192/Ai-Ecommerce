@@ -62,6 +62,8 @@ class ToolFindProductsPayload(BaseModel):
     )
     limit: Optional[int] = Field(
         default=None, ge=1, description="Filter products limit")
+    ids:Optional[list[int]] = Field(
+        default=None, ge=1, description="Products ids for filter directly")
 
 
 class FindProductsPayload(BaseModel):

@@ -9,12 +9,15 @@ from database import SessionLocal
 from schemas.cart import AddCartItemPayload, UpdateCartItemPayload
 from schemas.product import AddProductPayload, ToolFindProductsPayload, UpdateProductPayload
 from schemas.review import AddReviewPayload, UpdateReviewPayload
+from schemas.order import ToolDirectOrderPayload, ToolFilterOrderPayload
 from schemas.wishlist import AddWishlistItemPayload, RemoveWishlistItemPayload
 from tools.cart import CartTools
 from tools.product import ProductTool
 from tools.review import ReviewTools
 from tools.wishlist import WishlistTools
+from tools.order import OrderTools
 from schemas.response import AIFinalResponse
+
 
 def _json_value(value: Any) -> Any:
     if isinstance(value, (datetime, date)):
@@ -65,9 +68,10 @@ def get_cart_item(user_id: int, product_id: int) -> Any:
 
 
 @tool
-def add_cart_item(payload: AddCartItemPayload) -> Any:
+def add_cart_item(user_id: int, product_id: int, quantity: int = 1) -> Any:
     """Add a product to a user's cart or increase its quantity."""
-    return _run(CartTools.add_item, payload)
+    payload = AddCartItemPayload(product_id=product_id, quantity=quantity)
+    return _run(CartTools.add_item, user_id, payload)
 
 
 @tool
@@ -89,15 +93,39 @@ def clear_cart(user_id: int) -> bool:
 
 
 @tool
+def get_order(order_id: int, customer_id: int | None = None) -> Any:
+    """Get one order, optionally restricted to a customer."""
+    return _run(OrderTools.get_order, order_id, customer_id)
+
+
+@tool
+def get_orders(payload: ToolFilterOrderPayload, customer_id: int | None = None) -> Any:
+    """List orders using filters, optionally restricted to a customer."""
+    return _run(OrderTools.get_orders, payload, customer_id)
+
+
+@tool
+def create_order(customer_id: int, delivery_address: dict) -> Any:
+    """Create an order from the customer's cart."""
+    return _run(OrderTools.create_order, customer_id, delivery_address)
+
+
+@tool
+def direct_order(customer_id: int, payload: ToolDirectOrderPayload) -> Any:
+    """Create an order for one product immediately."""
+    return _run(OrderTools.direct_order, customer_id, payload)
+
+
+@tool
 def find_product_by_id(product_id: int) -> Any:
     """Find one product by its ID."""
     return _run(ProductTool.find_product_by_id, product_id)
 
 
 @tool
-def find_products(payload: ToolFindProductsPayload) -> Any:
+def find_products(user_id: int, payload: ToolFindProductsPayload) -> Any:
     """Search products by text, category, price, stock, or a combination of filters."""
-    return _run(ProductTool.find_products, payload)
+    return _run(ProductTool.find_products, user_id, payload)
 
 
 @tool
@@ -131,9 +159,9 @@ def find_reviews_by_user(user_id: int, limit: int | None = None) -> Any:
 
 
 @tool
-def add_review(payload: AddReviewPayload) -> Any:
+def add_review(user_id: int, payload: AddReviewPayload) -> Any:
     """Add a review for a product on behalf of a user."""
-    return _run(ReviewTools.add_review, payload)
+    return _run(ReviewTools.add_review, user_id, payload)
 
 
 @tool
@@ -161,15 +189,17 @@ def get_wishlist_item(user_id: int, product_id: int) -> Any:
 
 
 @tool
-def add_wishlist_item(payload: AddWishlistItemPayload) -> Any:
+def add_wishlist_item(user_id: int, product_id: int) -> Any:
     """Add a product to a user's wishlist."""
-    return _run(WishlistTools.add_item, payload)
+    payload = AddWishlistItemPayload(product_id=product_id)
+    return _run(WishlistTools.add_item, user_id, payload)
 
 
 @tool
-def remove_wishlist_item(payload: RemoveWishlistItemPayload) -> bool:
+def remove_wishlist_item(user_id: int, product_id: int) -> bool:
     """Remove a product from a user's wishlist."""
-    return _run(WishlistTools.remove_item, payload)
+    payload = RemoveWishlistItemPayload(product_id=product_id)
+    return _run(WishlistTools.remove_item, user_id, payload)
 
 
 @tool
@@ -178,10 +208,11 @@ def clear_wishlist(user_id: int) -> bool:
     return _run(WishlistTools.clear_wishlist, user_id)
 
 
-@tool 
-def final_response(response:AIFinalResponse)->AIFinalResponse:
+@tool
+def final_response(response: AIFinalResponse) -> AIFinalResponse:
     """Final response after all the process"""
     return response
+
 
 AI_TOOLS = [
     get_cart,
@@ -190,6 +221,10 @@ AI_TOOLS = [
     update_cart_item,
     remove_cart_item,
     clear_cart,
+    get_order,
+    get_orders,
+    create_order,
+    direct_order,
     find_product_by_id,
     find_products,
     add_product,

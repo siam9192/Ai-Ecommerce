@@ -28,7 +28,7 @@ class ProductsService:
             main_price=payload.main_price,
             category=payload.category,
             available_stock=payload.available_stock,
-            status=payload.status or ProductStatus.RUNNING,
+            status=payload.status or ProductStatus.ACTIVE,
         )
 
         db.add(product)

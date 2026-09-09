@@ -1,9 +1,21 @@
 from sqlalchemy.orm import Session
 from fastapi import status
-
 from models import Product, Review, User
 from schemas.review import AddReviewPayload, UpdateReviewPayload
 from schemas.utils import Response
+from agent.main import llm
+from models.review import ReviewReactionType
+from pydantic import BaseModel, Field
+from langchain_core.prompts import ChatPromptTemplate
+
+
+class ReviewAnalysis(BaseModel):
+    reaction_type: ReviewReactionType = Field(
+        description="The customer's reaction type classified from the review"
+    )
+    reasoning: str = Field(
+        description="A short explanation of why this reaction type was chosen"
+    )
 
 
 class ReviewService:
@@ -48,28 +60,47 @@ class ReviewService:
         )
 
     @staticmethod
-    def add_review(payload: AddReviewPayload, db: Session):
+    def add_review(user_id: int, payload: AddReviewPayload, db: Session):
         if db.query(Product).filter(Product.id == payload.product_id).first() is None:
             raise ValueError("Product not found")
-        if db.query(User).filter(User.id == payload.user_id).first() is None:
+        if db.query(User).filter(User.id == user_id).first() is None:
             raise ValueError("User not found")
         if (
             db.query(Review)
-            .filter(Review.user_id == payload.user_id, Review.product_id == payload.product_id)
+            .filter(Review.user_id == user_id, Review.product_id == payload.product_id)
             .first()
             is not None
         ):
             raise ValueError("User already reviewed this product")
 
+        structured_llm = llm.with_structured_output(ReviewAnalysis)
+
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are an expert customer feedback analyzer. Categorize the customer's reaction."),
+            ("human", """Analyze this customer review and classify the reaction type.
+            
+            Review Details:
+            "comment": {comment}
+            "rating": {rating}
+            """)
+        ])
+
+        analyzer_chain = prompt | structured_llm
+        output = analyzer_chain.invoke({
+            "comment": payload.comment,
+            "rating": payload.rating
+        })
         review = Review(
-            user_id=payload.user_id,
+            user_id=user_id,
             product_id=payload.product_id,
             rating=payload.rating,
             comment=payload.comment,
+            reaction_type=output.reaction_type
         )
         db.add(review)
         db.commit()
         db.refresh(review)
+
         return Response(
             success=True,
             status_code=status.HTTP_200_OK,

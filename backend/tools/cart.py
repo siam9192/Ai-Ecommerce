@@ -16,8 +16,8 @@ class CartTools:
             .first()
         )
 
-    def add_item(payload: AddCartItemPayload, db: Session):
-        user = db.query(User).filter(User.id == payload.user_id).first()
+    def add_item(user_id: int, payload: AddCartItemPayload, db: Session):
+        user = db.query(User).filter(User.id == user_id).first()
         if user is None:
             raise ValueError("User not found")
 
@@ -26,8 +26,7 @@ class CartTools:
         if product is None:
             raise ValueError("Product not found")
 
-        existing = get_cart_item(
-            payload.user_id, payload.product_id, db)
+        existing = CartTools.get_cart_item(user_id, payload.product_id, db)
         if existing is not None:
             existing.quantity += payload.quantity
             db.commit()
@@ -35,7 +34,7 @@ class CartTools:
             return existing
 
         cart_item = CartItem(
-            user_id=payload.user_id,
+            user_id=user_id,
             product_id=payload.product_id,
             quantity=payload.quantity,
         )
@@ -57,7 +56,7 @@ class CartTools:
         return cart_item
 
     def remove_item(user_id: int, product_id: int, db: Session):
-        cart_item = get_cart_item(user_id, product_id, db)
+        cart_item = CartTools.get_cart_item(user_id, product_id, db)
         if cart_item is None:
             return False
 

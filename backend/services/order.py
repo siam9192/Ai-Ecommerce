@@ -12,7 +12,8 @@ class OrderService:
     @staticmethod
     def get_order(order_id: int, current_user: AuthUser, db: Session):
         query = (db.query(Order)
-                 .options(selectinload(Order.customer), selectinload(Order.items).selectinload(OrderItems.product).selectinload(Product.images)).first(Order.id == order_id)
+                 .options(selectinload(Order.customer), selectinload(Order.items).selectinload(OrderItems.product).selectinload(Product.images))
+                 .filter(Order.id == order_id)
                  )
 
         # Customers can only see their own orders
@@ -158,12 +159,12 @@ class OrderService:
                 total_price=order.total_price,
                 delivery_address=order.delivery_address,
                 items=[
-                    __OrderItems(
+                    OrderItemResponse(
                         id=order_item.id,
                         product_id=order_item.product_id,
                         quantity=order_item.quantity,
                         per_price=order_item.per_price,
-                        product=__Product(
+                        product=ProductResponseItem(
                             id=order_item.product.id,
                             name=order_item.product.name,
                             images=[
@@ -255,7 +256,7 @@ class OrderService:
 
             return "Stock not available"
         price = float(product.main_price)
-        total_price += price * payload.quantity
+        total_price = price * payload.quantity
         product.available_stock -= payload.quantity
 
         order_item = OrderItems(

@@ -4,8 +4,6 @@ from pydantic import BaseModel, Field
 
 
 class AddReviewPayload(BaseModel):
-    user_id: int = Field(..., gt=0,
-                         description="User who is submitting the review")
     product_id: int = Field(..., gt=0, description="Product being reviewed")
     rating: int = Field(..., ge=1, le=5,
                         description="Review rating from 1 to 5")

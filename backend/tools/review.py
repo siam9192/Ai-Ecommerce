@@ -9,36 +9,34 @@ class ReviewTools:
 
     def find_reviews_by_product(product_id: int, db: Session, limit: int | None = None):
         query = db.query(Review).filter(Review.product_id == product_id)
+        query = query.order_by(Review.created_at.desc())
         if limit is not None:
             query = query.limit(limit)
-        return query.order_by(Review.created_at.desc()).all()
+        return query.all()
 
     def find_reviews_by_user(user_id: int, db: Session, limit: int | None = None):
         query = db.query(Review).filter(Review.user_id == user_id)
+        query = query.order_by(Review.created_at.desc())
         if limit is not None:
             query = query.limit(limit)
-        return query.order_by(Review.created_at.desc()).all()
+        return query.all()
 
-    def add_review(payload: AddReviewPayload, db: Session):
+    def add_review(user_id: int, payload: AddReviewPayload, db: Session):
         product = db.query(Product).filter(
             Product.id == payload.product_id).first()
         if product is None:
             raise ValueError("Product not found")
 
-        user = db.query(User).filter(User.id == payload.user_id).first()
-        if user is None:
-            raise ValueError("User not found")
-
         existing = (
             db.query(Review)
-            .filter(Review.user_id == payload.user_id, Review.product_id == payload.product_id)
+            .filter(Review.user_id == user_id, Review.product_id == payload.product_id)
             .first()
         )
         if existing is not None:
             raise ValueError("User already reviewed this product")
 
         review = Review(
-            user_id=payload.user_id,
+            user_id=user_id,
             product_id=payload.product_id,
             rating=payload.rating,
             comment=payload.comment,

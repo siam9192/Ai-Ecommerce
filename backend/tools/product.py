@@ -1,8 +1,10 @@
 from sqlalchemy import or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from models import Product, ProductImages
+from models import CartItem, WishlistItem
 from models.product import ProductStatus
 from schemas.product import AddProductPayload, ToolFindProductsPayload, UpdateProductPayload
+from schemas.response import ProductResponse
 from helpers import generate_slug
 
 
@@ -11,8 +13,14 @@ class ProductTool:
     def find_product_by_id(product_id: int, db: Session):
         return db.query(Product).filter(Product.id == product_id).first()
 
-    def find_products(payload: ToolFindProductsPayload, db: Session):
-        query = db.query(Product)
+    def find_products(user_id: int, payload: ToolFindProductsPayload, db: Session):
+        query = db.query(Product).filter(
+            Product.is_deleted.is_(False),
+            Product.status == ProductStatus.ACTIVE,
+        )
+
+        if payload.ids:
+            query = query.filter(Product.id.in_(payload.ids))
 
         if payload.name:
             query = query.filter(Product.name == payload.name)
@@ -67,7 +75,40 @@ class ProductTool:
         if payload.limit is not None:
             query = query.limit(payload.limit)
 
-        return query.all()
+        products = query.options(selectinload(Product.images)).all()
+        product_ids = [product.id for product in products]
+        cart_item_product_ids = {
+            product_id
+            for (product_id,) in db.query(CartItem.product_id).filter(
+                CartItem.user_id == user_id,
+                CartItem.product_id.in_(product_ids),
+            ).all()
+        }
+        wishlist_product_ids = {
+            product_id
+            for (product_id,) in db.query(WishlistItem.product_id).filter(
+                WishlistItem.user_id == user_id,
+                WishlistItem.product_id.in_(product_ids),
+            ).all()
+        }
+
+        return [
+            ProductResponse(
+                id=product.id,
+                name=product.name,
+                description=product.description,
+                regular_price=product.regular_price,
+                main_price=product.main_price,
+                images=[image.image_url for image in product.images],
+                available_stock=product.available_stock,
+                status=product.status,
+                created_at=product.created_at,
+                updated_at=product.updated_at,
+                wish_listed=product.id in wishlist_product_ids,
+                cart_item_listed=product.id in cart_item_product_ids,
+            )
+            for product in products
+        ]
 
     def add_product(payload: AddProductPayload, db: Session):
         slug = generate_slug(payload.name)
@@ -84,7 +125,7 @@ class ProductTool:
             main_price=payload.main_price,
             category=payload.category,
             available_stock=payload.available_stock,
-            status=payload.status or ProductStatus.RUNNING,
+            status=payload.status or ProductStatus.ACTIVE,
         )
 
         db.add(product)
@@ -151,6 +192,6 @@ class ProductTool:
         if product is None:
             return "Product not found"
 
-        db.query(Product).filter(Product.id == product_id).delete()
-        
+        product.is_deleted = True
+        db.commit()
         return True

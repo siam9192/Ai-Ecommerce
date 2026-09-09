@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "name": "Laptop",
+    "description": "Portable computer suitable for work, study, and entertainment.",
+    "category": "Electronics"
+  },
+  {
+    "id": 2,
+    "name": "Smartphone",
+    "description": "Modern mobile device with a touchscreen and smart features.",
+    "category": "Electronics"
+  },
+  {
+    "id": 3,
+    "name": "Headphones",
+    "description": "Over-ear headphones designed for comfortable music listening.",
+    "category": "Audio"
+  },
+  {
+    "id": 4,
+    "name": "Wireless Mouse",
+    "description": "Ergonomic wireless mouse for computers and laptops.",
+    "category": "Computer Accessories"
+  },
+  {
+    "id": 5,
+    "name": "Mechanical Keyboard",
+    "description": "Durable mechanical keyboard designed for typing and gaming.",
+    "category": "Computer Accessories"
+  },
+  {
+    "id": 6,
+    "name": "Smart Watch",
+    "description": "Wearable device for notifications, fitness tracking, and timekeeping.",
+    "category": "Wearables"
+  },
+  {
+    "id": 7,
+    "name": "Bluetooth Speaker",
+    "description": "Portable speaker that provides wireless audio playback.",
+    "category": "Audio"
+  },
+  {
+    "id": 8,
+    "name": "USB-C Charger",
+    "description": "Fast charging adapter compatible with USB-C devices.",
+    "category": "Accessories"
+  },
+  {
+    "id": 9,
+    "name": "Gaming Monitor",
+    "description": "High-refresh-rate monitor designed for smooth gaming performance.",
+    "category": "Gaming"
+  },
+  {
+    "id": 10,
+    "name": "Power Bank",
+    "description": "Portable battery for charging smartphones and other devices.",
+    "category": "Accessories"
+  },
+  {
+    "id": 11,
+    "name": "Webcam",
+    "description": "HD camera suitable for video calls, streaming, and online meetings.",
+    "category": "Computer Accessories"
+  },
+  {
+    "id": 12,
+    "name": "Tablet",
+    "description": "Portable touchscreen device for browsing, studying, and media consumption.",
+    "category": "Electronics"
+  }
+]

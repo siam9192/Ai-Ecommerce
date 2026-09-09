@@ -12,23 +12,21 @@ from services.wishlist import WishlistService
 router = APIRouter(prefix="/wishlist", tags=["Wishlist"])
 
 
-@router.get("/{user_id}")
+@router.get("")
 def get_wishlist(
-    user_id: int,
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return WishlistService.get_wishlist(user_id, db)
+    return WishlistService.get_wishlist(current_user.id, db)
 
 
-@router.get("/{user_id}/items/{product_id}")
+@router.get("/items/{product_id}")
 def get_wishlist_item(
-    user_id: int,
     product_id: int,
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return WishlistService.get_wishlist_item(user_id, product_id, db)
+    return WishlistService.get_wishlist_item(current_user.id, product_id, db)
 
 
 @router.post("/items")
@@ -37,7 +35,7 @@ def add_wishlist_item(
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return WishlistService.add_item(payload, db)
+    return WishlistService.add_item(current_user.id, payload, db)
 
 
 @router.delete("/items")
@@ -46,10 +44,10 @@ def remove_wishlist_item(
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return WishlistService.remove_item(current_user.id,payload, db)
+    return WishlistService.remove_item(current_user.id, payload, db)
 
 
-@router.delete("/{user_id}")
+@router.delete("")
 def clear_wishlist(
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),

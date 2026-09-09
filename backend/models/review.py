@@ -1,9 +1,16 @@
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, Enum
 from sqlalchemy.orm import relationship
 
 from database import Base
+import enum
+
+
+class ReviewReactionType(str, enum.Enum):
+    HIGHLY_SATISFIED = "highly satisfied"
+    SATISFIED = "satisfied"
+    UNSATISFIED = "unsatisfied"
 
 
 class Review(Base):
@@ -14,6 +21,7 @@ class Review(Base):
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     rating = Column(Integer, nullable=False, default=5)
     comment = Column(Text, nullable=True)
+    reaction_type = Column(Enum(ReviewReactionType))
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
         DateTime,

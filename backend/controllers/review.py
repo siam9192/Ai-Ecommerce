@@ -41,7 +41,7 @@ def add_review(
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return ReviewService.add_review(payload, db)
+    return ReviewService.add_review(current_user.id, payload, db)
 
 
 @router.patch("/{review_id}")

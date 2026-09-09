@@ -12,7 +12,7 @@ from services.cart import CartService
 router = APIRouter(prefix="/cart", tags=["Cart"])
 
 
-@router.get("/{user_id}")
+@router.get("")
 def get_cart(
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
@@ -22,7 +22,6 @@ def get_cart(
 
 @router.get("/items/{product_id}")
 def get_cart_item(
-    user_id: int,
     product_id: int,
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
@@ -49,7 +48,7 @@ def update_cart_item(
     return CartService.update_item(current_user.id, product_id, payload, db)
 
 
-@router.delete("/{user_id}/items/{product_id}")
+@router.delete("/items/{product_id}")
 def remove_cart_item(
     product_id: int,
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
@@ -58,7 +57,7 @@ def remove_cart_item(
     return CartService.remove_item(current_user.id, product_id, db)
 
 
-@router.delete("/{user_id}")
+@router.delete("")
 def clear_cart(
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),

@@ -18,8 +18,8 @@ class WishlistTools:
         )
 
     @staticmethod
-    def add_item(payload: AddWishlistItemPayload, db: Session):
-        user = db.query(User).filter(User.id == payload.user_id).first()
+    def add_item(user_id: int, payload: AddWishlistItemPayload, db: Session):
+        user = db.query(User).filter(User.id == user_id).first()
         if user is None:
             raise ValueError("User not found")
 
@@ -29,12 +29,12 @@ class WishlistTools:
             raise ValueError("Product not found")
 
         existing = WishlistTools.get_wishlist_item(
-            payload.user_id, payload.product_id, db)
+            user_id, payload.product_id, db)
         if existing is not None:
             return existing
 
         wishlist_item = WishlistItem(
-            user_id=payload.user_id,
+            user_id=user_id,
             product_id=payload.product_id,
         )
         db.add(wishlist_item)
@@ -43,9 +43,9 @@ class WishlistTools:
         return wishlist_item
 
     @staticmethod
-    def remove_item(payload: RemoveWishlistItemPayload, db: Session):
+    def remove_item(user_id: int, payload: RemoveWishlistItemPayload, db: Session):
         wishlist_item = WishlistTools.get_wishlist_item(
-            payload.user_id, payload.product_id, db)
+            user_id, payload.product_id, db)
         if wishlist_item is None:
             return False
 
