@@ -10,6 +10,38 @@ from helpers import generate_slug
 
 class ProductTool:
 
+    @staticmethod
+    def analyze_products(category: str | None, db: Session):
+        query = db.query(Product).filter(Product.is_deleted.is_(False))
+        if category is not None:
+            query = query.filter(Product.category == category)
+
+        products = query.all()
+        inventory_units = sum(product.available_stock for product in products)
+        inventory_value = sum(
+            float(product.main_price) * product.available_stock
+            for product in products
+        )
+        active_products = sum(
+            1 for product in products if product.status == ProductStatus.ACTIVE
+        )
+        return {
+            "category": category,
+            "product_count": len(products),
+            "active_product_count": active_products,
+            "inactive_product_count": len(products) - active_products,
+            "inventory_units": inventory_units,
+            "inventory_value": inventory_value,
+            "average_main_price": (
+                sum(float(product.main_price)
+                    for product in products) / len(products)
+                if products else 0.0
+            ),
+            "out_of_stock_count": sum(
+                1 for product in products if product.available_stock == 0
+            ),
+        }
+
     def find_product_by_id(product_id: int, db: Session):
         return db.query(Product).filter(Product.id == product_id).first()
 

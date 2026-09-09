@@ -30,6 +30,8 @@ def _json_value(value: Any) -> Any:
 def _serialize(value: Any) -> Any:
     if value is None or isinstance(value, (str, int, float, bool)):
         return value
+    if isinstance(value, dict):
+        return {key: _serialize(item) for key, item in value.items()}
     if isinstance(value, list):
         return [_serialize(item) for item in value]
     if isinstance(value, tuple):
@@ -93,6 +95,12 @@ def clear_cart(user_id: int) -> bool:
 
 
 @tool
+def analyze_cart(user_id: int) -> Any:
+    """Summarize cart contents, value, and stock coverage for a user."""
+    return _run(CartTools.analyze_cart, user_id)
+
+
+@tool
 def get_order(order_id: int, customer_id: int | None = None) -> Any:
     """Get one order, optionally restricted to a customer."""
     return _run(OrderTools.get_order, order_id, customer_id)
@@ -117,6 +125,12 @@ def direct_order(customer_id: int, payload: ToolDirectOrderPayload) -> Any:
 
 
 @tool
+def analyze_orders(customer_id: int | None = None, product_id: int | None = None) -> Any:
+    """Summarize order count, revenue, item volume, and status distribution."""
+    return _run(OrderTools.analyze_orders, customer_id, product_id)
+
+
+@tool
 def find_product_by_id(product_id: int) -> Any:
     """Find one product by its ID."""
     return _run(ProductTool.find_product_by_id, product_id)
@@ -138,6 +152,12 @@ def add_product(payload: AddProductPayload) -> Any:
 def update_product(product_id: int, payload: UpdateProductPayload) -> Any:
     """Update an existing catalog product."""
     return _run(ProductTool.update_product, product_id, payload)
+
+
+@tool
+def analyze_products(category: str | None = None) -> Any:
+    """Summarize catalog size, pricing, stock, and inventory value."""
+    return _run(ProductTool.analyze_products, category)
 
 
 @tool
@@ -174,6 +194,12 @@ def update_review(review_id: int, payload: UpdateReviewPayload) -> Any:
 def delete_review(review_id: int) -> bool:
     """Delete a review by its ID."""
     return _run(ReviewTools.delete_review, review_id)
+
+
+@tool
+def analyze_reviews(product_id: int | None = None) -> Any:
+    """Summarize review volume, ratings, reactions, and comment coverage."""
+    return _run(ReviewTools.analyze_reviews, product_id)
 
 
 @tool
@@ -221,20 +247,24 @@ AI_TOOLS = [
     update_cart_item,
     remove_cart_item,
     clear_cart,
+    analyze_cart,
     get_order,
     get_orders,
     create_order,
     direct_order,
+    analyze_orders,
     find_product_by_id,
     find_products,
     add_product,
     update_product,
+    analyze_products,
     find_review_by_id,
     find_reviews_by_product,
     find_reviews_by_user,
     add_review,
     update_review,
     delete_review,
+    analyze_reviews,
     get_wishlist,
     get_wishlist_item,
     add_wishlist_item,

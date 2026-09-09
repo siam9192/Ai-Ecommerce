@@ -6,6 +6,29 @@ from schemas.cart import AddCartItemPayload, UpdateCartItemPayload
 
 class CartTools:
 
+    @staticmethod
+    def analyze_cart(user_id: int, db: Session):
+        rows = (
+            db.query(CartItem.quantity, Product.main_price,
+                     Product.available_stock)
+            .join(Product, Product.id == CartItem.product_id)
+            .filter(CartItem.user_id == user_id)
+            .all()
+        )
+        total_items = sum(row.quantity for row in rows)
+        return {
+            "user_id": user_id,
+            "unique_products": len(rows),
+            "total_items": total_items,
+            "subtotal": sum(float(row.main_price) * row.quantity for row in rows),
+            "out_of_stock_products": sum(
+                1 for row in rows if row.available_stock <= 0
+            ),
+            "low_stock_products": sum(
+                1 for row in rows if 0 < row.available_stock < row.quantity
+            ),
+        }
+
     def get_cart(user_id: int, db: Session):
         return db.query(CartItem).filter(CartItem.user_id == user_id).order_by(CartItem.created_at.desc()).all()
 

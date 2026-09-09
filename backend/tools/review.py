@@ -1,9 +1,36 @@
+from collections import Counter
+
 from sqlalchemy.orm import Session
 from models import Product, Review, User
 from schemas.review import AddReviewPayload, UpdateReviewPayload
 
 
 class ReviewTools:
+    @staticmethod
+    def analyze_reviews(product_id: int | None, db: Session):
+        query = db.query(Review)
+        if product_id is not None:
+            query = query.filter(Review.product_id == product_id)
+
+        reviews = query.all()
+        rating_distribution = Counter(str(review.rating) for review in reviews)
+        reaction_distribution = Counter(
+            review.reaction_type.value
+            for review in reviews
+            if review.reaction_type is not None
+        )
+        return {
+            "product_id": product_id,
+            "review_count": len(reviews),
+            "average_rating": (
+                sum(review.rating for review in reviews) / len(reviews)
+                if reviews else 0.0
+            ),
+            "rating_distribution": dict(sorted(rating_distribution.items())),
+            "reaction_distribution": dict(reaction_distribution),
+            "comment_count": sum(1 for review in reviews if review.comment),
+        }
+
     def find_review_by_id(review_id: int, db: Session):
         return db.query(Review).filter(Review.id == review_id).first()
 

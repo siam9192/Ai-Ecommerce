@@ -7,6 +7,40 @@ from schemas.order import ToolDirectOrderPayload, ToolFilterOrderPayload
 
 class OrderTools:
     @staticmethod
+    def analyze_orders(
+        customer_id: int | None,
+        product_id: int | None,
+        db: Session,
+    ):
+        query = db.query(Order).options(selectinload(Order.items))
+        if customer_id is not None:
+            query = query.filter(Order.customer_id == customer_id)
+        if product_id is not None:
+            query = query.join(Order.items).filter(
+                OrderItems.product_id == product_id
+            ).distinct()
+
+        orders = query.all()
+        orders_by_status = {}
+        total_items = 0
+        for order in orders:
+            status = order.status.value if isinstance(
+                order.status, OrderStatus) else order.status
+            orders_by_status[status] = orders_by_status.get(status, 0) + 1
+            total_items += sum(item.quantity for item in order.items)
+
+        total_revenue = sum(float(order.total_price) for order in orders)
+        return {
+            "customer_id": customer_id,
+            "product_id": product_id,
+            "order_count": len(orders),
+            "total_revenue": total_revenue,
+            "average_order_value": total_revenue / len(orders) if orders else 0.0,
+            "total_items": total_items,
+            "orders_by_status": orders_by_status,
+        }
+
+    @staticmethod
     def get_order(order_id: int, db: Session, customer_id: int | None = None):
         query = db.query(Order).options(
             selectinload(Order.items).selectinload(OrderItems.product)
