@@ -46,9 +46,8 @@ def create_order(
 
 @router.post("/direct")
 def direct_order(
-    customer_id: int,
     payload: ToolDirectOrderPayload,
     current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
     db: Session = Depends(get_db),
 ):
-    return OrderService.direct_order(customer_id, payload, db)
+    return OrderService.direct_order(current_user.id, payload, db)

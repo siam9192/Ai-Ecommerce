@@ -4,7 +4,7 @@ from .product import Product, ProductImages
 from .review import Review
 from .users import User
 from .wishlist import WishlistItem
-
+from database import Base
 __all__ = [
     "User",
     "Product",
@@ -15,4 +15,5 @@ __all__ = [
     "OrderItem",
     "CartItem",
     "WishlistItem",
+    "Base"
 ]

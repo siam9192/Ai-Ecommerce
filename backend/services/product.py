@@ -14,6 +14,7 @@ from models.users import UserRole
 class ProductsService:
 
     def add_product(payload: AddProductPayload, db: Session):
+       
         slug = generate_slug(payload.name)
         counter = 2
         while db.query(Product).filter(Product.slug == slug).first() is not None:
@@ -48,7 +49,9 @@ class ProductsService:
             success=True,
             status_code=status.HTTP_200_OK,
             message="Product created successfully",
-            data=product
+            data= {
+                "id":product.id
+            }
         )
 
     def update_product(product_id: int, payload: UpdateProductPayload, db: Session):
@@ -60,7 +63,10 @@ class ProductsService:
             product.name = payload.name.strip()
             slug = generate_slug(payload.name)
             counter = 2
-            while db.query(Product).filter(Product.slug == slug).first() is not None:
+            while db.query(Product).filter(
+                Product.slug == slug,
+                Product.id != product.id,
+            ).first() is not None:
                 slug = generate_slug(f"{payload.name} {counter}")
                 counter += 1
             product.slug = slug
@@ -83,6 +89,19 @@ class ProductsService:
         if payload.status is not None:
             product.status = payload.status
 
+        regular_price = (
+            payload.regular_price
+            if payload.regular_price is not None
+            else product.regular_price
+        )
+        main_price = (
+            payload.main_price
+            if payload.main_price is not None
+            else product.main_price
+        )
+        if regular_price <= main_price:
+            raise ValueError("Regular price must be greater than main price")
+
         if payload.images is not None:
             db.query(ProductImages).filter(
                 ProductImages.product_id == product.id).delete()
@@ -94,7 +113,9 @@ class ProductsService:
         db.commit()
         db.refresh(product)
         return Response(
-            data=product,
+            data={
+                "id":product.id
+                 },
             success=True,
             status_code=status.HTTP_200_OK,
             message="Product updated successfully"
@@ -105,7 +126,8 @@ class ProductsService:
         if product is None:
             return "Product not found"
 
-        db.query(Product).filter(Product.id == product_id).delete()
+        product.is_deleted = True
+        db.commit()
 
         return Response(
             data=True,
@@ -127,19 +149,19 @@ class ProductsService:
                 )
             )
 
-            if payload.min_price is not None:
-                query = query.filter(Product.main_price >=
-                                     payload.min_price)
-            if payload.max_price is not None:
-                query = query.filter(Product.main_price <=
-                                     payload.max_price)
+        if payload.min_price is not None:
+            query = query.filter(Product.main_price >= payload.min_price)
+        if payload.max_price is not None:
+            query = query.filter(Product.main_price <= payload.max_price)
         if current_user is not None and current_user.role == UserRole.CUSTOMER:
             query = query.filter(Product.status == ProductStatus.ACTIVE)
 
-        limit, skip, sort_by, sort_order, page = calculate_pagination(
-            pagination_query)
-        query = query.limit(limit).offset(skip)
-        count = query.count()
+        pagination = calculate_pagination(pagination_query)
+        limit = pagination.limit
+        skip = pagination.skip
+        sort_by = pagination.sort_by
+        sort_order = pagination.sort_order
+        page = pagination.page
 
         sort_column = getattr(Product, sort_by, None) if sort_by else None
         if sort_column:
@@ -147,6 +169,8 @@ class ProductsService:
                 query = query.order_by(sort_column.desc())
             else:
                 query = query.order_by(sort_column.asc())
+        count = query.count()
+        query = query.limit(limit).offset(skip)
         products = (
             query
             .options(selectinload(Product.images))

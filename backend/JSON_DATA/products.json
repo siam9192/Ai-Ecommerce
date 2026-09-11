@@ -1,74 +1,92 @@
 [
   {
-    "id": 1,
-    "name": "Laptop",
-    "description": "Portable computer suitable for work, study, and entertainment.",
-    "category": "Electronics"
+    "name": "Wireless Bluetooth Headphones",
+    "description": "Over-ear wireless headphones with deep bass and long battery life.",
+    "regular_price": 3500,
+    "main_price": 2799,
+    "images": ["https://example.com/images/headphones-1.jpg"],
+    "category": "Electronics",
+    "available_stock": 45
   },
   {
-    "id": 2,
-    "name": "Smartphone",
-    "description": "Modern mobile device with a touchscreen and smart features.",
-    "category": "Electronics"
+    "name": "Mechanical Gaming Keyboard",
+    "description": "RGB mechanical keyboard with responsive switches and customizable lighting.",
+    "regular_price": 4500,
+    "main_price": 3599,
+    "images": ["https://example.com/images/keyboard-1.jpg"],
+    "category": "Computer Accessories",
+    "available_stock": 30
   },
   {
-    "id": 3,
-    "name": "Headphones",
-    "description": "Over-ear headphones designed for comfortable music listening.",
-    "category": "Audio"
+    "name": "Fast Charging Power Bank 20000mAh",
+    "description": "High-capacity power bank with fast charging and dual USB output.",
+    "regular_price": 2800,
+    "main_price": 2199,
+    "images": ["https://example.com/images/powerbank-1.jpg"],
+    "category": "Mobile Accessories",
+    "available_stock": 75
   },
   {
-    "id": 4,
-    "name": "Wireless Mouse",
-    "description": "Ergonomic wireless mouse for computers and laptops.",
-    "category": "Computer Accessories"
+    "name": "Smart Watch Series X",
+    "description": "Smartwatch with fitness tracking, notifications, and multiple sports modes.",
+    "regular_price": 6000,
+    "main_price": 4799,
+    "images": ["https://example.com/images/smartwatch-1.jpg"],
+    "category": "Wearables",
+    "available_stock": 25
   },
   {
-    "id": 5,
-    "name": "Mechanical Keyboard",
-    "description": "Durable mechanical keyboard designed for typing and gaming.",
-    "category": "Computer Accessories"
+    "name": "USB-C Fast Charging Adapter",
+    "description": "Compact 33W USB-C fast charger for smartphones and tablets.",
+    "regular_price": 1600,
+    "main_price": 1199,
+    "images": ["https://example.com/images/charger-1.jpg"],
+    "category": "Mobile Accessories",
+    "available_stock": 100
   },
   {
-    "id": 6,
-    "name": "Smart Watch",
-    "description": "Wearable device for notifications, fitness tracking, and timekeeping.",
-    "category": "Wearables"
+    "name": "Gaming Mouse RGB",
+    "description": "Ergonomic gaming mouse with adjustable DPI and programmable buttons.",
+    "regular_price": 2200,
+    "main_price": 1699,
+    "images": ["https://example.com/images/mouse-1.jpg"],
+    "category": "Computer Accessories",
+    "available_stock": 60
   },
   {
-    "id": 7,
-    "name": "Bluetooth Speaker",
-    "description": "Portable speaker that provides wireless audio playback.",
-    "category": "Audio"
+    "name": "Portable Bluetooth Speaker",
+    "description": "Compact wireless speaker with powerful sound and water resistance.",
+    "regular_price": 3200,
+    "main_price": 2499,
+    "images": ["https://example.com/images/speaker-1.jpg"],
+    "category": "Audio",
+    "available_stock": 40
   },
   {
-    "id": 8,
-    "name": "USB-C Charger",
-    "description": "Fast charging adapter compatible with USB-C devices.",
-    "category": "Accessories"
+    "name": "Laptop Backpack",
+    "description": "Water-resistant backpack with multiple compartments and laptop protection.",
+    "regular_price": 2500,
+    "main_price": 1899,
+    "images": ["https://example.com/images/backpack-1.jpg"],
+    "category": "Bags",
+    "available_stock": 55
   },
   {
-    "id": 9,
-    "name": "Gaming Monitor",
-    "description": "High-refresh-rate monitor designed for smooth gaming performance.",
-    "category": "Gaming"
+    "name": "1080p USB Webcam",
+    "description": "Full HD webcam with built-in microphone and auto light correction.",
+    "regular_price": 3000,
+    "main_price": 2299,
+    "images": ["https://example.com/images/webcam-1.jpg"],
+    "category": "Computer Accessories",
+    "available_stock": 35
   },
   {
-    "id": 10,
-    "name": "Power Bank",
-    "description": "Portable battery for charging smartphones and other devices.",
-    "category": "Accessories"
-  },
-  {
-    "id": 11,
-    "name": "Webcam",
-    "description": "HD camera suitable for video calls, streaming, and online meetings.",
-    "category": "Computer Accessories"
-  },
-  {
-    "id": 12,
-    "name": "Tablet",
-    "description": "Portable touchscreen device for browsing, studying, and media consumption.",
-    "category": "Electronics"
+    "name": "Wireless Gaming Controller",
+    "description": "Wireless controller with dual analog sticks and rechargeable battery.",
+    "regular_price": 3800,
+    "main_price": 2999,
+    "images": ["https://example.com/images/controller-1.jpg"],
+    "category": "Gaming",
+    "available_stock": 20
   }
 ]

@@ -22,6 +22,7 @@ ENV/
 *.db-shm
 *.db-wal
 *.db-journal
+chroma_db/
 
 # Test, coverage, and type-checker output
 .pytest_cache/

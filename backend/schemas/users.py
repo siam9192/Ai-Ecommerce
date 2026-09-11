@@ -10,6 +10,7 @@ class RegisterPayload(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     full_name: str = Field(min_length=1, max_length=50)
+    role: Optional[UserRole] = Field(default=UserRole.CUSTOMER)
 
 
 class LoginPayload(BaseModel):
@@ -29,7 +30,7 @@ class UserResponse(BaseModel):
     id: int
     email: EmailStr
     full_name: str
-    profile_picture: Optional[str]
+    profile_picture: Optional[str] = None
     role: UserRole
     status: UserStatus
     created_at: datetime

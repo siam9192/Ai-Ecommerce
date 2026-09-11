@@ -184,7 +184,10 @@ class ProductTool:
             product.name = payload.name.strip()
             slug = generate_slug(payload.name)
             counter = 2
-            while db.query(Product).filter(Product.slug == slug).first() is not None:
+            while db.query(Product).filter(
+                Product.slug == slug,
+                Product.id != product.id,
+            ).first() is not None:
                 slug = generate_slug(f"{payload.name} {counter}")
                 counter += 1
             product.slug = slug
@@ -206,6 +209,19 @@ class ProductTool:
 
         if payload.status is not None:
             product.status = payload.status
+
+        regular_price = (
+            payload.regular_price
+            if payload.regular_price is not None
+            else product.regular_price
+        )
+        main_price = (
+            payload.main_price
+            if payload.main_price is not None
+            else product.main_price
+        )
+        if regular_price <= main_price:
+            raise ValueError("Regular price must be greater than main price")
 
         if payload.images is not None:
             db.query(ProductImages).filter(

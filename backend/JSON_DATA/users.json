@@ -1,0 +1,58 @@
+[
+  {
+    "email": "john.doe@example.com",
+    "password": "hashed_password_123",
+    "full_name": "John Doe"
+  },
+  {
+    "email": "jane.smith@example.com",
+    "password": "hashed_password_456",
+    "full_name": "Jane Smith"
+  },
+  {
+    "email": "alex.johnson@example.com",
+    "password": "hashed_password_789",
+    "full_name": "Alex Johnson"
+  },
+  {
+    "email": "emily.brown@example.com",
+    "password": "hashed_password_101",
+    "full_name": "Emily Brown"
+  },
+  {
+    "email": "michael.davis@example.com",
+    "password": "hashed_password_202",
+    "full_name": "Michael Davis"
+  },
+  {
+    "email": "sarah.wilson@example.com",
+    "password": "hashed_password_303",
+    "full_name": "Sarah Wilson"
+  },
+  {
+    "email": "david.taylor@example.com",
+    "password": "hashed_password_404",
+    "full_name": "David Taylor"
+  },
+  {
+    "email": "jessica.anderson@example.com",
+    "password": "hashed_password_505",
+    "full_name": "Jessica Anderson"
+  },
+  {
+    "email": "robert.thomas@example.com",
+    "password": "hashed_password_606",
+    "full_name": "Robert Thomas"
+  },
+  {
+    "email": "linda.white@example.com",
+    "password": "hashed_password_707",
+    "full_name": "Linda White"
+  },
+  {
+    "email":"admin@gmail.com",
+    "password":"admin_123",
+    "full_name":"Arafat Hasan Siam",
+    "role":"admin"
+  }
+]

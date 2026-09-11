@@ -8,8 +8,9 @@ class PaginationQuery (BaseModel):
     page: Optional[int] = Field(default=1, description="Data limit")
     sort_order: Optional[str] = Field(
         default="asc", description="Must be asc or desc")
-    sort_by: Optional[str] = Field(description="Sort field name")
-    skip: Optional[int] = Field(description="How many data to skip")
+    sort_by: Optional[str] = Field(default=None, description="Sort field name")
+    skip: Optional[int] = Field(
+        default=None, description="How many data to skip")
 
 
 T = TypeVar("T")
@@ -23,11 +24,11 @@ class Meta(BaseModel):
 
 
 class Response(BaseModel, Generic[T]):
-    message: Optional[str]
+    message: Optional[str] = None
     success: bool
     status_code: int
     data: T
-    meta: Optional[Meta]
+    meta: Optional[Meta] = None
 
 
 class AuthUser (BaseModel):

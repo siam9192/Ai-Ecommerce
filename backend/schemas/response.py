@@ -68,22 +68,22 @@ class AIFinalResponse(BaseModel):
 class ProductResponse(BaseModel):
     id: int
     name: str
-    description: Optional[str]
-    regular_price: int
-    main_price: int
+    description: Optional[str] = None
+    regular_price: float
+    main_price: float
     images: list[str]
     available_stock: int
     status: ProductStatus
     created_at: datetime
     updated_at: datetime
-    wish_listed: Optional[bool]
-    cart_item_listed: Optional[bool]
+    wish_listed: Optional[bool] = None
+    cart_item_listed: Optional[bool] = None
 
 
 class CustomerResponse(BaseModel):
     id: int
     name: str
-    profile_picture: Optional[str]
+    profile_picture: Optional[str] = None
 
 
 class ProductResponseItem(BaseModel):
@@ -108,5 +108,5 @@ class OrderResponse(BaseModel):
     status: str
     created_at: datetime
     updated_at: datetime
-    customer: Optional[CustomerResponse]
+    customer: Optional[CustomerResponse] = None
     items: list[OrderItemResponse]

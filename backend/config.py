@@ -28,12 +28,8 @@ class Settings(BaseSettings):
     # Redis
     redis_url: str = "redis://localhost:6379/0"
 
-    # Payment Gateways
-    stripe_api_key: str = ""
-    stripe_webhook_secret: str = ""
-    sslcommerz_store_id: str = ""
-    sslcommerz_store_password: str = ""
-    sslcommerz_sandbox: bool = True
+    #API Keys
+    gemini_api_key:str = ""
 
     # CORS
     allowed_origins: list[str] = [

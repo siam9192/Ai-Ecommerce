@@ -7,7 +7,7 @@ from schemas.product import AddProductPayload, FindProductsPayload, UpdateProduc
 from models.users import UserRole
 from schemas.utils import AuthUser, PaginationQuery
 from services.product import ProductsService
-
+from controllers.auth import get_optional_current_user
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -18,7 +18,7 @@ def find_products(
     pagination_query: PaginationQuery = Depends(),
     db: Session = Depends(get_db),
     current_user: AuthUser = Depends(
-        auth_guard([UserRole.CUSTOMER, UserRole.ADMIN])
+        get_optional_current_user
     ),
 ):
     return ProductsService.find_products(payload, pagination_query, db, current_user)
@@ -29,7 +29,7 @@ def find_product_by_slug(
     slug: str,
     db: Session = Depends(get_db),
     current_user: AuthUser = Depends(
-        auth_guard([UserRole.CUSTOMER, UserRole.ADMIN])
+        auth_guard(get_optional_current_user)
     ),
 ):
     return ProductsService.find_product_by_slug(slug, db, current_user)
@@ -44,7 +44,7 @@ def add_product(
     return ProductsService.add_product(payload, db)
 
 
-@router.patch("/{product_id}")
+@router.put("/{product_id}")
 def update_product(
     product_id: int,
     payload: UpdateProductPayload,

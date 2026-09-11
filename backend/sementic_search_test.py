@@ -8,7 +8,7 @@ collection = client.get_or_create_collection(
     name="products_collection"
 )
 
-if collection.count != 0:
+if collection.count() == 0:
 
     with open("./JSON_DATA/products.json", "r") as file:
         data = json.load(file)
@@ -16,7 +16,7 @@ if collection.count != 0:
     collection.add(
         ids=[str(product["id"]) for product in data],
         documents=[
-            f"name:{product["name"]}-description:{product["description"]}-category:{product["category"]}" for product in data],
+            f"name:{product['name']}-description:{product['description']}-category:{product['category']}" for product in data],
         metadatas=[
             {
                 "name": product["name"],

@@ -53,7 +53,7 @@ def update_review(
     ),
     db: Session = Depends(get_db),
 ):
-    return ReviewService.update_review(review_id, payload, db)
+    return ReviewService.update_review(review_id, payload, current_user, db)
 
 
 @router.delete("/{review_id}")
@@ -64,4 +64,4 @@ def delete_review(
     ),
     db: Session = Depends(get_db),
 ):
-    return ReviewService.delete_review(review_id, db)
+    return ReviewService.delete_review(review_id, current_user, db)

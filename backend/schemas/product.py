@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from models.product import ProductStatus
 
@@ -62,7 +62,7 @@ class ToolFindProductsPayload(BaseModel):
     )
     limit: Optional[int] = Field(
         default=None, ge=1, description="Filter products limit")
-    ids:Optional[list[int]] = Field(
+    ids: Optional[list[int]] = Field(
         default=None, ge=1, description="Products ids for filter directly")
 
 
@@ -89,11 +89,6 @@ class FindProductsPayload(BaseModel):
         default=None,
         description="Filter products by availability. Set to true for products currently in stock and false for products that are out of stock.",
     )
-   
-    
-
-     
-    
 
 
 class AddProductPayload(BaseModel):
@@ -110,6 +105,12 @@ class AddProductPayload(BaseModel):
         default=0, ge=0, description="Product current available stock")
     status: Optional[ProductStatus] = Field(
         default=None, description="Product current status")
+
+    @model_validator(mode="after")
+    def validate_prices(self):
+        if self.regular_price <= self.main_price:
+            raise ValueError("Regular price must be greater than main price")
+        return self
 
 
 class UpdateProductPayload(BaseModel):
@@ -129,3 +130,13 @@ class UpdateProductPayload(BaseModel):
         default=None, ge=0, description="Product current available stock")
     status: Optional[ProductStatus] = Field(
         default=None, description="Product current status")
+
+    @model_validator(mode="after")
+    def validate_prices(self):
+        if (
+            self.regular_price is not None
+            and self.main_price is not None
+            and self.regular_price <= self.main_price
+        ):
+            raise ValueError("Regular price must be greater than main price")
+        return self

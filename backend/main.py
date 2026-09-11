@@ -11,7 +11,9 @@ from controllers.product import router as product_router
 from controllers.review import router as review_router
 from controllers.wishlist import router as wishlist_router
 from controllers.users import router as users_router
-
+from database import engine
+from helpers import init_users
+from models import Base
 settings = get_settings()
 api_prefix = "/api/v1"
 
@@ -29,6 +31,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+
+@app.on_event("startup")
+def startup():
+    Base.metadata.create_all(bind=engine)
+    init_users()
 
 
 @app.get("/health", tags=["Health"])

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from config import get_settings
 from models.users import User, UserRole, UserStatus
 from schemas.users import LoginPayload, RegisterPayload, UpdateUserPayload
-from schemas.utils import Response
+from schemas.utils import Response, AuthUser
 
 
 password_hash = PasswordHash.recommended()
@@ -43,7 +43,7 @@ class UserService:
             email=email,
             hashed_password=password_hash.hash(payload.password),
             full_name=payload.full_name.strip(),
-            role=UserRole.CUSTOMER,
+            role=payload.role,
             status=UserStatus.ACTIVE,
         )
         db.add(user)
@@ -111,3 +111,9 @@ class UserService:
         user.is_deleted = True
         db.commit()
         return _response("User deleted successfully", True)
+
+    @staticmethod
+    def get_me(current_user: AuthUser, db: Session):
+        user = db.query(User).filter(User.id == current_user.id).first()
+        user.hashed_password == ""
+        return _response("Current user retrieved successfully", _user_response(user))

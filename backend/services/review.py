@@ -2,9 +2,10 @@ from sqlalchemy.orm import Session
 from fastapi import status
 from models import Product, Review, User
 from schemas.review import AddReviewPayload, UpdateReviewPayload
-from schemas.utils import Response
+from schemas.utils import AuthUser, Response
 from agent.main import llm
 from models.review import ReviewReactionType
+from models.users import UserRole
 from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -109,13 +110,25 @@ class ReviewService:
         )
 
     @staticmethod
-    def update_review(review_id: int, payload: UpdateReviewPayload, db: Session):
+    def update_review(
+        review_id: int,
+        payload: UpdateReviewPayload,
+        current_user: AuthUser,
+        db: Session,
+    ):
         review = ReviewService._find_review_by_id(review_id, db)
         if review is None:
             return Response(
                 success=False,
                 status_code=status.HTTP_404_NOT_FOUND,
                 message="Review not found",
+                data=None,
+            )
+        if current_user.role != UserRole.ADMIN and review.user_id != current_user.id:
+            return Response(
+                success=False,
+                status_code=status.HTTP_403_FORBIDDEN,
+                message="You do not have permission to update this review",
                 data=None,
             )
         if payload.rating is not None:
@@ -132,13 +145,20 @@ class ReviewService:
         )
 
     @staticmethod
-    def delete_review(review_id: int, db: Session):
+    def delete_review(review_id: int, current_user: AuthUser, db: Session):
         review = ReviewService._find_review_by_id(review_id, db)
         if review is None:
             return Response(
                 success=False,
                 status_code=status.HTTP_404_NOT_FOUND,
                 message="Review not found",
+                data=False,
+            )
+        if current_user.role != UserRole.ADMIN and review.user_id != current_user.id:
+            return Response(
+                success=False,
+                status_code=status.HTTP_403_FORBIDDEN,
+                message="You do not have permission to delete this review",
                 data=False,
             )
         db.delete(review)

@@ -46,10 +46,10 @@ def _serialize(value: Any) -> Any:
     }
 
 
-def _run(operation: Callable[..., Any], *args: Any) -> Any:
+def _run(operation: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
     db = SessionLocal()
     try:
-        return _serialize(operation(*args, db))
+        return _serialize(operation(*args, db, **kwargs))
     except Exception:
         db.rollback()
         raise
@@ -103,13 +103,13 @@ def analyze_cart(user_id: int) -> Any:
 @tool
 def get_order(order_id: int, customer_id: int | None = None) -> Any:
     """Get one order, optionally restricted to a customer."""
-    return _run(OrderTools.get_order, order_id, customer_id)
+    return _run(OrderTools.get_order, order_id, customer_id=customer_id)
 
 
 @tool
 def get_orders(payload: ToolFilterOrderPayload, customer_id: int | None = None) -> Any:
     """List orders using filters, optionally restricted to a customer."""
-    return _run(OrderTools.get_orders, payload, customer_id)
+    return _run(OrderTools.get_orders, payload, customer_id=customer_id)
 
 
 @tool
@@ -169,13 +169,13 @@ def find_review_by_id(review_id: int) -> Any:
 @tool
 def find_reviews_by_product(product_id: int, limit: int | None = None) -> Any:
     """List recent reviews for a product."""
-    return _run(ReviewTools.find_reviews_by_product, product_id, limit)
+    return _run(ReviewTools.find_reviews_by_product, product_id, limit=limit)
 
 
 @tool
 def find_reviews_by_user(user_id: int, limit: int | None = None) -> Any:
     """List recent reviews written by a user."""
-    return _run(ReviewTools.find_reviews_by_user, user_id, limit)
+    return _run(ReviewTools.find_reviews_by_user, user_id, limit=limit)
 
 
 @tool
