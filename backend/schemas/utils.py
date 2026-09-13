@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field
 from typing import Optional, TypeVar, Generic, Any
+from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel, Field, field_serializer
 from models.users import UserRole
 
 
@@ -29,6 +30,10 @@ class Response(BaseModel, Generic[T]):
     status_code: int
     data: T
     meta: Optional[Meta] = None
+
+    @field_serializer("data", mode="plain")
+    def serialize_data(self, data: T) -> Any:
+        return jsonable_encoder(data)
 
 
 class AuthUser (BaseModel):

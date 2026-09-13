@@ -37,7 +37,7 @@ class WishlistService:
         )
 
     @staticmethod
-    def add_item(user_id:int,payload: AddWishlistItemPayload, db: Session):
+    def add_item(user_id: int, payload: AddWishlistItemPayload, db: Session):
         if db.query(User).filter(User.id == user_id).first() is None:
             raise ValueError("User not found")
         if db.query(Product).filter(Product.id == payload.product_id).first() is None:
@@ -72,9 +72,9 @@ class WishlistService:
         )
 
     @staticmethod
-    def remove_item(user_id:int,payload: RemoveWishlistItemPayload, db: Session):
+    def remove_item(user_id: int, payload: RemoveWishlistItemPayload, db: Session):
         item_response = WishlistService.get_wishlist_item(
-       user_id, payload.product_id, db)
+            user_id, payload.product_id, db)
         if item_response.data is None:
             return Response(
                 success=False,

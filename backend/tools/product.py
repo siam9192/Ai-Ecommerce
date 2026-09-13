@@ -6,6 +6,7 @@ from models.product import ProductStatus
 from schemas.product import AddProductPayload, ToolFindProductsPayload, UpdateProductPayload
 from schemas.response import ProductResponse
 from helpers import generate_slug
+from typing import Optional
 
 
 class ProductTool:
@@ -45,11 +46,13 @@ class ProductTool:
     def find_product_by_id(product_id: int, db: Session):
         return db.query(Product).filter(Product.id == product_id).first()
 
-    def find_products(user_id: int, payload: ToolFindProductsPayload, db: Session):
+    def find_products(payload: ToolFindProductsPayload, db: Session):
         query = db.query(Product).filter(
             Product.is_deleted.is_(False),
             Product.status == ProductStatus.ACTIVE,
         )
+
+        print(payload.model_dump_json(indent=2))
 
         if payload.ids:
             query = query.filter(Product.id.in_(payload.ids))
@@ -109,20 +112,26 @@ class ProductTool:
 
         products = query.options(selectinload(Product.images)).all()
         product_ids = [product.id for product in products]
-        cart_item_product_ids = {
-            product_id
-            for (product_id,) in db.query(CartItem.product_id).filter(
-                CartItem.user_id == user_id,
-                CartItem.product_id.in_(product_ids),
-            ).all()
-        }
-        wishlist_product_ids = {
-            product_id
-            for (product_id,) in db.query(WishlistItem.product_id).filter(
-                WishlistItem.user_id == user_id,
-                WishlistItem.product_id.in_(product_ids),
-            ).all()
-        }
+
+        cart_item_product_ids = []
+        wishlist_product_ids = []
+
+        if payload.user_id is not None:
+
+            cart_item_product_ids = {
+                product_id
+                for (product_id,) in db.query(CartItem.product_id).filter(
+                    CartItem.user_id == payload.user_id,
+                    CartItem.product_id.in_(product_ids),
+                ).all()
+            }
+            wishlist_product_ids = {
+                product_id
+                for (product_id,) in db.query(WishlistItem.product_id).filter(
+                    WishlistItem.user_id == payload.user_id,
+                    WishlistItem.product_id.in_(product_ids),
+                ).all()
+            }
 
         return [
             ProductResponse(

@@ -1,8 +1,21 @@
 from collections import Counter
 
+from langchain_core.prompts import ChatPromptTemplate
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-from models import Product, Review, User
+from agent.main import llm
+from models import Order, OrderItem, Product, Review
+from models.review import ReviewReactionType
 from schemas.review import AddReviewPayload, UpdateReviewPayload
+
+
+class ReviewAnalysis(BaseModel):
+    reaction_type: ReviewReactionType = Field(
+        description="The customer's reaction type classified from the review"
+    )
+    reasoning: str = Field(
+        description="A short explanation of why this reaction type was chosen"
+    )
 
 
 class ReviewTools:
@@ -62,11 +75,40 @@ class ReviewTools:
         if existing is not None:
             raise ValueError("User already reviewed this product")
 
+        has_order = (
+            db.query(OrderItem)
+            .join(Order, Order.id == OrderItem.order_id)
+            .filter(
+                Order.customer_id == user_id,
+                OrderItem.product_id == payload.product_id,
+            )
+            .first()
+            is not None
+        )
+
+        structured_llm = llm.with_structured_output(ReviewAnalysis)
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are an expert customer feedback analyzer. Categorize the customer's reaction."),
+            ("human", """Analyze this customer review and classify the reaction type.
+
+            Review Details:
+            "comment": {comment}
+            "rating": {rating}
+            """),
+        ])
+
+        analyzer_chain = prompt | structured_llm
+        output = analyzer_chain.invoke({
+            "comment": payload.comment,
+            "rating": payload.rating,
+        })
         review = Review(
             user_id=user_id,
             product_id=payload.product_id,
             rating=payload.rating,
             comment=payload.comment,
+            reaction_type=output.reaction_type,
+            is_verified=has_order,
         )
         db.add(review)
         db.commit()

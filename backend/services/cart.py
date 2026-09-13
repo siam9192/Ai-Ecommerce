@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from fastapi import HTTPException, status
 from models import CartItem, Product, User
 from schemas.cart import AddCartItemPayload, UpdateCartItemPayload
@@ -11,6 +11,7 @@ class CartService:
         cart = (
             db.query(CartItem)
             .filter(CartItem.user_id == user_id)
+            .options(selectinload(CartItem.product).options(selectinload(Product.images)))
             .order_by(CartItem.created_at.desc())
             .all()
         )
@@ -26,6 +27,7 @@ class CartService:
         item = (
             db.query(CartItem)
             .filter(CartItem.user_id == user_id, CartItem.product_id == product_id)
+            .options(selectinload(CartItem.product))
             .first()
         )
         return Response(
@@ -36,7 +38,7 @@ class CartService:
         )
 
     @staticmethod
-    def add_item(user_id:int,payload: AddCartItemPayload, db: Session):
+    def add_item(user_id: int, payload: AddCartItemPayload, db: Session):
 
         if db.query(Product).filter(Product.id == payload.product_id).first() is None:
             raise HTTPException(
@@ -66,7 +68,9 @@ class CartService:
             success=True,
             status_code=status.HTTP_200_OK,
             message="Cart item added successfully",
-            data=item,
+            data={
+                "id": item.id
+            },
         )
 
     @staticmethod

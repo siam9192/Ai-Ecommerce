@@ -6,13 +6,28 @@ from models.product import ProductStatus
 from datetime import datetime
 
 
+class ProductResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    regular_price: float
+    main_price: float
+    images: list[str]
+    available_stock: int
+    status: ProductStatus
+    created_at: datetime
+    updated_at: datetime
+    wish_listed: Optional[bool] = None
+    cart_item_listed: Optional[bool] = None
+
+
 class AIActions(BaseModel):
     client_navigate_to: Optional[str] = Field(
         default=None,
         description="Route the client should navigate to, if required."
     )
 
-    product_search_results: list[Any] = Field(
+    product_ai_search_results: Optional[list[ProductResponse]] = Field(
         default_factory=list,
         description="Products returned from a product search."
     )
@@ -63,21 +78,9 @@ class AIFinalResponse(BaseModel):
         default_factory=AIActions,
         description="Actions that the frontend/client should perform."
     )
+    
+    
 
-
-class ProductResponse(BaseModel):
-    id: int
-    name: str
-    description: Optional[str] = None
-    regular_price: float
-    main_price: float
-    images: list[str]
-    available_stock: int
-    status: ProductStatus
-    created_at: datetime
-    updated_at: datetime
-    wish_listed: Optional[bool] = None
-    cart_item_listed: Optional[bool] = None
 
 
 class CustomerResponse(BaseModel):

@@ -1,7 +1,6 @@
 from schemas.utils import PaginationQuery
 import json
 from schemas.users import RegisterPayload
-from services.users import UserService
 from database import SessionLocal
 from models import User
 
@@ -29,6 +28,8 @@ def get_json(path: str):
 
 
 def init_users():
+    from services.users import UserService
+
     db = SessionLocal()
     try:
         users_count = db.query(User).count()

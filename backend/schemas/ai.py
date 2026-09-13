@@ -1,13 +1,13 @@
-from pydantic import BaseModel,Field
-from typing import Optional,Literal
+from pydantic import BaseModel, Field
+from typing import Literal, Optional
 
 
 class ClientState (BaseModel):
-    current_path: str
-    featured_product_ids: list[int] | None = None
-    shop_product_ids: list[int] | None = None
-    order_ids: list[int] | None = None
-    customer_ids: list[int] | None = None
+    current_path: str = "/"
+    featured_product_ids: list[int] = Field(default_factory=list)
+    shop_product_ids: list[int] = Field(default_factory=list)
+    order_ids: list[int] = Field(default_factory=list)
+    customer_ids: list[int] = Field(default_factory=list)
 
 
 class ChatHistory(BaseModel):
@@ -17,5 +17,5 @@ class ChatHistory(BaseModel):
 
 class AIAskPayload(BaseModel):
     message: str = Field(min_length=1)
-    client_state: ClientState
-    chat_history: list[ChatHistory] = Field(default_factory=list)
+    client_state: Optional[ClientState] = Field(default=None)
+    chat_history: Optional[list[ChatHistory]] = Field(default_factory=list)

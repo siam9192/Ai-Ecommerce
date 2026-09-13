@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class AddReviewPayload(BaseModel):
     product_id: int = Field(..., gt=0, description="Product being reviewed")
-    rating: int = Field(..., ge=1, le=5,
+    rating: float = Field(..., ge=1, le=5,
                         description="Review rating from 1 to 5")
     comment: Optional[str] = Field(
         default=None, max_length=2000, description="Optional review comment")

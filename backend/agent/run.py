@@ -15,16 +15,21 @@ agent = create_agent(model=llm, tools=AI_TOOLS, system_prompt=SYSTEM_PROMPT)
 
 def ask(
     message: str,
-    client_state: ClientState,
-    chat_history: list[ChatHistory],
-    current_user: AuthUser,
+    client_state: ClientState | None = None,
+    chat_history: list[ChatHistory] | None = None,
+    current_user: AuthUser = None,
 ) -> AIFinalResponse:
+    client_state = client_state or ClientState()
+    chat_history = chat_history or []
     history_messages = [
         HumanMessage(content=item.content)
         if item.role == "user"
         else AIMessage(content=item.content)
         for item in chat_history
     ]
+    is_authenticated = current_user is not None
+    user_id = current_user.id if current_user else None
+    user_role = current_user.role if current_user else None
     application_state = HumanMessage(
         content=(
             "Application state:\n"
@@ -33,9 +38,9 @@ def ask(
             f"shop-product-ids: {client_state.shop_product_ids}\n"
             f"order-ids: {client_state.order_ids}\n"
             f"customer-ids: {client_state.customer_ids}\n"
-            f"is_authenticated: yes\n"
-            f"user-id: {current_user.id}\n"
-            f"user-role: {current_user.role}"
+            f"is_authenticated: {'yes' if is_authenticated else 'no'}\n"
+            f"user-id: {user_id}\n"
+            f"user-role: {user_role}"
         )
     )
     result = agent.invoke({

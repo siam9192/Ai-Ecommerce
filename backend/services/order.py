@@ -1,12 +1,11 @@
 from sqlalchemy.orm import Session, selectinload
 from models import CartItem, Order, OrderItems, Product
 from fastapi import HTTPException, status
-from schemas.order import ToolDirectOrderPayload, ToolFilterOrderPayload
+from schemas.order import ToolDirectOrderPayload, ToolFilterOrderPayload,DeliveryAddress
 from schemas.utils import AuthUser, PaginationQuery
 from models.users import UserRole
 from schemas.utils import Response, Meta
 from schemas.response import OrderResponse, OrderItemResponse, ProductResponseItem
-
 
 class OrderService:
     @staticmethod
@@ -194,7 +193,7 @@ class OrderService:
         )
 
     @staticmethod
-    def create_order(customer_id: int, delivery_address: dict, db: Session):
+    def create_order(customer_id: int, delivery_address: DeliveryAddress, db: Session):
         cart_items = (
             db.query(CartItem)
             .options(selectinload(CartItem.product))

@@ -2,8 +2,10 @@ from collections.abc import Callable
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
+from pathlib import Path
 from typing import Any
 from langchain.tools import tool
+from pydantic import BaseModel
 from sqlalchemy.inspection import inspect
 from database import SessionLocal
 from schemas.cart import AddCartItemPayload, UpdateCartItemPayload
@@ -30,6 +32,8 @@ def _json_value(value: Any) -> Any:
 def _serialize(value: Any) -> Any:
     if value is None or isinstance(value, (str, int, float, bool)):
         return value
+    if isinstance(value, BaseModel):
+        return _serialize(value.model_dump(mode="json"))
     if isinstance(value, dict):
         return {key: _serialize(item) for key, item in value.items()}
     if isinstance(value, list):
@@ -137,9 +141,9 @@ def find_product_by_id(product_id: int) -> Any:
 
 
 @tool
-def find_products(user_id: int, payload: ToolFindProductsPayload) -> Any:
+def find_products(payload: ToolFindProductsPayload) -> Any:
     """Search products by text, category, price, stock, or a combination of filters."""
-    return _run(ProductTool.find_products, user_id, payload)
+    return _run(ProductTool.find_products,payload)
 
 
 @tool
@@ -200,6 +204,14 @@ def delete_review(review_id: int) -> bool:
 def analyze_reviews(product_id: int | None = None) -> Any:
     """Summarize review volume, ratings, reactions, and comment coverage."""
     return _run(ReviewTools.analyze_reviews, product_id)
+
+
+@tool
+def get_about() -> str:
+    """Read the store's contact information from the about document."""
+    document_path = Path(__file__).resolve(
+    ).parent.parent / "documents" / "about.txt"
+    return document_path.read_text(encoding="utf-8")
 
 
 @tool
@@ -265,6 +277,7 @@ AI_TOOLS = [
     update_review,
     delete_review,
     analyze_reviews,
+    get_about,
     get_wishlist,
     get_wishlist_item,
     add_wishlist_item,

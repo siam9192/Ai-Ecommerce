@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends
-
-from controllers.auth import auth_guard
+from controllers.auth import auth_guard, get_optional_current_user
 from models.users import UserRole
 from schemas.ai import AIAskPayload
 from schemas.response import AIFinalResponse
@@ -15,7 +14,7 @@ router = APIRouter(prefix="/ai", tags=["AI"])
 def ask_ai(
     payload: AIAskPayload,
     current_user: AuthUser = Depends(
-        auth_guard([UserRole.CUSTOMER, UserRole.ADMIN])
+        get_optional_current_user
     ),
 ):
     return AIService.ask(current_user, payload)

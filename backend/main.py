@@ -1,5 +1,9 @@
-from fastapi import FastAPI
+import logging
+
+from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from starlette.middleware.gzip import GZipMiddleware
 
 from config import get_settings
@@ -14,6 +18,8 @@ from controllers.users import router as users_router
 from database import engine
 from helpers import init_users
 from models import Base
+
+logger = logging.getLogger(__name__)
 settings = get_settings()
 api_prefix = "/api/v1"
 
@@ -31,6 +37,45 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+
+def error_response(status_code: int, message: str, data=None) -> JSONResponse:
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "message": message,
+            "success": False,
+            "status_code": status_code,
+            "data": data,
+        },
+    )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return error_response(exc.status_code, str(exc.detail))
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+):
+    return error_response(
+        status.HTTP_422_UNPROCESSABLE_ENTITY,
+        "Request validation failed",
+        exc.errors(),
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    print(str(exc))
+    logger.exception(
+        "Unhandled exception while processing %s", request.url.path)
+    return error_response(
+        status.HTTP_500_INTERNAL_SERVER_ERROR,
+        "Internal server error",
+    )
 
 
 @app.on_event("startup")

@@ -6,13 +6,13 @@ from datetime import datetime
 
 class DeliveryAddress(BaseModel):
     street: str = Field(
-        description="Street address, house number, road name, or other detailed location information."
+        description="Street address, house number, road name, or other detailed location information. Customer input"
     )
     city: str = Field(
-        description="City or town where the order should be delivered."
+        description="City or town where the order should be delivered.Customer input"
     )
     state: str = Field(
-        description="State, division, or administrative region where the order should be delivered."
+        description="State, division, or administrative region where the order should be delivered.Customer input"
     )
 
 
@@ -21,10 +21,10 @@ class ToolDirectOrderPayload(BaseModel):
         description="The unique ID of the product the customer wants to order."
     )
     delivery_address: DeliveryAddress = Field(
-        description="The customer's complete delivery address where the order should be delivered."
+        description="The customer's complete delivery address where the order should be delivered.Customer input "
     )
     quantity: int = Field(
-        description="The number of units of the product the customer wants to purchase. Must be a positive integer.",
+        description="The number of units of the product the customer wants to purchase. Must be a positive integer.Customer input",
         gt=0,
     )
 

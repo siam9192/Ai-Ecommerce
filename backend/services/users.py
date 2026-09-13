@@ -7,8 +7,14 @@ from sqlalchemy.orm import Session
 
 from config import get_settings
 from models.users import User, UserRole, UserStatus
-from schemas.users import LoginPayload, RegisterPayload, UpdateUserPayload
-from schemas.utils import Response, AuthUser
+from schemas.users import (
+    FindUsersPayload,
+    LoginPayload,
+    RegisterPayload,
+    UpdateUserPayload,
+)
+from schemas.utils import AuthUser, Meta, PaginationQuery, Response
+from helpers import calculate_pagination
 
 
 password_hash = PasswordHash.recommended()
@@ -32,6 +38,44 @@ def _response(message: str, data, code: int = status.HTTP_200_OK):
 
 
 class UserService:
+    @staticmethod
+    def users_find(
+        payload: FindUsersPayload,
+        pagination_query: PaginationQuery,
+        db: Session,
+    ):
+        query = db.query(User).filter(User.is_deleted.is_(False))
+
+        if payload.email is not None:
+            query = query.filter(User.email == str(payload.email).lower())
+
+        pagination = calculate_pagination(pagination_query)
+        sort_column = getattr(User, pagination.sort_by,
+                              None) if pagination.sort_by else None
+        if sort_column is not None:
+            if (pagination.sort_order or "asc").lower() == "desc":
+                query = query.order_by(sort_column.desc())
+            else:
+                query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(User.created_at.desc())
+
+        total = query.count()
+        users = query.limit(pagination.limit).offset(pagination.skip).all()
+
+        return Response(
+            message="Users retrieved successfully",
+            success=True,
+            status_code=status.HTTP_200_OK,
+            data=[_user_response(user) for user in users],
+            meta=Meta(
+                page=pagination.page,
+                skip=pagination.skip,
+                limit=pagination.limit,
+                total=total,
+            ),
+        )
+
     @staticmethod
     def register(payload: RegisterPayload, db: Session):
         email = str(payload.email).lower()

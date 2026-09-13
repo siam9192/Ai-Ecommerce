@@ -5,7 +5,7 @@ import agent.run as agent
 
 class AIService:
     @staticmethod
-    def ask(current_user: AuthUser, payload: AIAskPayload):
+    def ask(current_user: AuthUser|None, payload: AIAskPayload):
         return agent.ask(
             payload.message,
             payload.client_state,

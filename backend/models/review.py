@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, Enum
+from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, Enum, Boolean, Float
 from sqlalchemy.orm import relationship
 
 from database import Base
@@ -19,7 +19,7 @@ class Review(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
-    rating = Column(Integer, nullable=False, default=5)
+    rating = Column(Float, nullable=False)
     comment = Column(Text, nullable=True)
     reaction_type = Column(Enum(ReviewReactionType))
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -29,6 +29,8 @@ class Review(Base):
         onupdate=datetime.utcnow,
         nullable=False,
     )
+
+    is_verified = Column(Boolean, default=False, nullable=False)
 
     __table_args__ = (
         UniqueConstraint("user_id", "product_id",

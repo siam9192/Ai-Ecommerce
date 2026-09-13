@@ -64,6 +64,8 @@ class ToolFindProductsPayload(BaseModel):
         default=None, ge=1, description="Filter products limit")
     ids: Optional[list[int]] = Field(
         default=None, ge=1, description="Products ids for filter directly")
+    user_id: Optional[int] = Field(
+        default=None, description="An user id of requester")
 
 
 class FindProductsPayload(BaseModel):

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import status
-from models import Product, Review, User
+from models import Product, Review, User, OrderItem
 from schemas.review import AddReviewPayload, UpdateReviewPayload
 from schemas.utils import AuthUser, Response
 from agent.main import llm
@@ -64,8 +64,6 @@ class ReviewService:
     def add_review(user_id: int, payload: AddReviewPayload, db: Session):
         if db.query(Product).filter(Product.id == payload.product_id).first() is None:
             raise ValueError("Product not found")
-        if db.query(User).filter(User.id == user_id).first() is None:
-            raise ValueError("User not found")
         if (
             db.query(Review)
             .filter(Review.user_id == user_id, Review.product_id == payload.product_id)
@@ -73,6 +71,13 @@ class ReviewService:
             is not None
         ):
             raise ValueError("User already reviewed this product")
+
+        has_order = db.query(OrderItem).filter(
+            OrderItem.product_id == payload.product_id).filter_by()
+        
+        is_verified = False
+        if (has_order is not None):
+            is_verified = True
 
         structured_llm = llm.with_structured_output(ReviewAnalysis)
 
@@ -96,7 +101,8 @@ class ReviewService:
             product_id=payload.product_id,
             rating=payload.rating,
             comment=payload.comment,
-            reaction_type=output.reaction_type
+            reaction_type=output.reaction_type,
+            is_verified=is_verified
         )
         db.add(review)
         db.commit()

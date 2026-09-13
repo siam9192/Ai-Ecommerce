@@ -24,6 +24,10 @@ class UpdateUserPayload(BaseModel):
     profile_picture: Optional[str] = None
 
 
+class FindUsersPayload(BaseModel):
+    email: Optional[EmailStr] = None
+
+
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
