@@ -1,0 +1,94 @@
+from sqlalchemy.orm import Session
+
+from app.models import CartItem, Product, User
+from app.schemas.cart import AddCartItemPayload, UpdateCartItemPayload
+
+
+class CartTools:
+
+    @staticmethod
+    def analyze_cart(user_id: int, db: Session):
+        rows = (
+            db.query(CartItem.quantity, Product.main_price,
+                     Product.available_stock)
+            .join(Product, Product.id == CartItem.product_id)
+            .filter(CartItem.user_id == user_id)
+            .all()
+        )
+        total_items = sum(row.quantity for row in rows)
+        return {
+            "user_id": user_id,
+            "unique_products": len(rows),
+            "total_items": total_items,
+            "subtotal": sum(float(row.main_price) * row.quantity for row in rows),
+            "out_of_stock_products": sum(
+                1 for row in rows if row.available_stock <= 0
+            ),
+            "low_stock_products": sum(
+                1 for row in rows if 0 < row.available_stock < row.quantity
+            ),
+        }
+
+    def get_cart(user_id: int, db: Session):
+        return db.query(CartItem).filter(CartItem.user_id == user_id).order_by(CartItem.created_at.desc()).all()
+
+    def get_cart_item(user_id: int, product_id: int, db: Session):
+        return (
+            db.query(CartItem)
+            .filter(CartItem.user_id == user_id, CartItem.product_id == product_id)
+            .first()
+        )
+
+    def add_item(user_id: int, payload: AddCartItemPayload, db: Session):
+        user = db.query(User).filter(User.id == user_id).first()
+        if user is None:
+            raise ValueError("User not found")
+
+        product = db.query(Product).filter(
+            Product.id == payload.product_id).first()
+        if product is None:
+            raise ValueError("Product not found")
+
+        existing = CartTools.get_cart_item(user_id, payload.product_id, db)
+        if existing is not None:
+            existing.quantity += payload.quantity
+            db.commit()
+            db.refresh(existing)
+            return existing
+
+        cart_item = CartItem(
+            user_id=user_id,
+            product_id=payload.product_id,
+            quantity=payload.quantity,
+        )
+        db.add(cart_item)
+        db.commit()
+        db.refresh(cart_item)
+        return cart_item
+
+    def update_item(user_id: int, product_id: int, payload: UpdateCartItemPayload, db: Session):
+        cart_item = CartTools.get_cart_item(user_id, product_id, db)
+        if cart_item is None:
+            return None
+
+        if payload.quantity is not None:
+            cart_item.quantity = payload.quantity
+
+        db.commit()
+        db.refresh(cart_item)
+        return cart_item
+
+    def remove_item(user_id: int, product_id: int, db: Session):
+        cart_item = CartTools.get_cart_item(user_id, product_id, db)
+        if cart_item is None:
+            return False
+
+        db.delete(cart_item)
+        db.commit()
+        return True
+
+    def clear_cart(user_id: int, db: Session):
+        deleted = db.query(CartItem).filter(
+            CartItem.user_id == user_id).delete()
+        db.commit()
+        return deleted > 0

@@ -1,0 +1,115 @@
+from typing import Literal, Optional
+from pydantic import BaseModel, Field
+from typing import Literal, Optional, Any
+from pydantic import BaseModel, Field
+from app.models.product import ProductStatus
+from datetime import datetime
+
+
+class ProductResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    regular_price: float
+    main_price: float
+    images: list[str]
+    available_stock: int
+    status: ProductStatus
+    created_at: datetime
+    updated_at: datetime
+    wish_listed: Optional[bool] = None
+    cart_item_listed: Optional[bool] = None
+
+
+class AIActions(BaseModel):
+    client_navigate_to: Optional[str] = Field(
+        default=None,
+        description="Route the client should navigate to, if required."
+    )
+
+    product_ai_search_results: Optional[list[ProductResponse]] = Field(
+        default_factory=list,
+        description="Products returned from a product search."
+    )
+
+    client_logout: bool = Field(
+        default=False,
+        description="Whether the client should log out."
+    )
+
+    cart_update: bool = Field(
+        default=False,
+        description="Whether the cart was successfully updated."
+    )
+
+    product_update: bool = Field(
+        default=False,
+        description="Whether a product was successfully updated."
+    )
+
+    review_update: bool = Field(
+        default=False,
+        description="Whether a review was successfully updated."
+    )
+
+    user_update: bool = Field(
+        default=False,
+        description="Whether a user was successfully updated."
+    )
+
+
+class AIFinalResponse(BaseModel):
+    """Final response that will be shown directly to the user."""
+
+    message: str = Field(
+        description="Concise, natural-language response to show to the user."
+    )
+
+    status: Literal["success", "error", "partial", "info"] = Field(
+        description="Overall result of the requested operation."
+    )
+
+    summary: Optional[str] = Field(
+        default=None,
+        description="Short summary of what was done."
+    )
+
+    actions: AIActions = Field(
+        default_factory=AIActions,
+        description="Actions that the frontend/client should perform."
+    )
+    
+    
+
+
+
+class CustomerResponse(BaseModel):
+    id: int
+    name: str
+    profile_picture: Optional[str] = None
+
+
+class ProductResponseItem(BaseModel):
+    id: int
+    name: str
+    images: list[str]
+
+
+class OrderItemResponse(BaseModel):
+    id: int
+    product_id: int
+    product: ProductResponseItem
+    quantity: int
+    per_price: float
+
+
+class OrderResponse(BaseModel):
+    id: int
+    customer_id: int
+    total_price: float
+    delivery_address: dict
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    customer: Optional[CustomerResponse] = None
+    items: list[OrderItemResponse]
