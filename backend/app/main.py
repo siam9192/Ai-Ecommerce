@@ -18,6 +18,7 @@ from app.controllers.users import router as users_router
 from app.database import engine
 from app.helpers import init_users
 from app.models import Base
+import socket
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -86,7 +87,9 @@ def startup():
 
 @app.get("/health", tags=["Health"])
 def health_check():
-    return {"status": "ok"}
+    return {"status": "ok",
+            "host": socket.gethostname()
+            }
 
 
 app.include_router(prefix=api_prefix, router=product_router)

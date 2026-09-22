@@ -1,5 +1,6 @@
 from app.schemas.utils import PaginationQuery
 import json
+from pathlib import Path
 from app.schemas.users import RegisterPayload
 from app.database import SessionLocal
 from app.models import User
@@ -34,7 +35,8 @@ def init_users():
     try:
         users_count = db.query(User).count()
         if users_count == 0:
-            user_payloads = get_json("./JSON_DATA/users.json")
+            user_payloads = get_json(
+                Path(__file__).resolve().parent / "JSON_DATA" / "users.json")
             user_payloads = [
                 RegisterPayload(
                     email=user["email"],

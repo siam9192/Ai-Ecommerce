@@ -49,6 +49,7 @@ class OrderService:
                     product=ProductResponseItem(
                         id=order_item.product.id,
                         name=order_item.product.name,
+                        slug=order_item.product.slug,
                         images=[
                             image.image_url for image in order_item.product.images],
                     ),
@@ -167,6 +168,7 @@ class OrderService:
                         product=ProductResponseItem(
                             id=order_item.product.id,
                             name=order_item.product.name,
+                            slug=order_item.product.slug,
                             images=[
                                 image.image_url for image in order_item.product.images],
                         ),

@@ -75,6 +75,9 @@ class UserService:
                 total=total,
             ),
         )
+        
+    
+        
 
     @staticmethod
     def register(payload: RegisterPayload, db: Session):

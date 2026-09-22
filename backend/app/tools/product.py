@@ -137,6 +137,7 @@ class ProductTool:
             ProductResponse(
                 id=product.id,
                 name=product.name,
+                slug=product.slug,
                 description=product.description,
                 regular_price=product.regular_price,
                 main_price=product.main_price,

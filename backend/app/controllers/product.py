@@ -24,12 +24,23 @@ def find_products(
     return ProductsService.find_products(payload, pagination_query, db, current_user)
 
 
+@router.get("/featured")
+def find_featured_products(
+    pagination_query: PaginationQuery = Depends(),
+    db: Session = Depends(get_db),
+    current_user: AuthUser = Depends(get_optional_current_user),
+):
+    return ProductsService.find_featured_products(
+        pagination_query, db, current_user
+    )
+
+
 @router.get("/slug/{slug}")
 def find_product_by_slug(
     slug: str,
     db: Session = Depends(get_db),
     current_user: AuthUser = Depends(
-        auth_guard(get_optional_current_user)
+      get_optional_current_user
     ),
 ):
     return ProductsService.find_product_by_slug(slug, db, current_user)

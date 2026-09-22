@@ -200,6 +200,7 @@ class ProductsService:
             ProductResponse(
                 id=product.id,
                 name=product.name,
+                slug=product.slug,
                 description=product.description[:100],
                 regular_price=product.regular_price,
                 main_price=product.main_price,
@@ -227,6 +228,81 @@ class ProductsService:
         )
         return result
 
+    def find_featured_products(
+        pagination_query: PaginationQuery,
+        db: Session,
+        current_user: Optional[AuthUser] = None,
+    ):
+        query = db.query(Product).filter(
+            Product.is_deleted == False,
+            Product.status == ProductStatus.ACTIVE,
+        )
+
+        pagination = calculate_pagination(pagination_query)
+        query = query.order_by(
+            Product.rating.desc(),
+            Product.created_at.desc(),
+        )
+        count = query.count()
+        products = (
+            query
+            .limit(pagination.limit)
+            .offset(pagination.skip)
+            .options(selectinload(Product.images))
+            .all()
+        )
+
+        cart_items_products_id = set()
+        wishlist_items_products_id = set()
+        if current_user is not None and current_user.role == UserRole.CUSTOMER:
+            product_ids = [product.id for product in products]
+            cart_items_products_id = {
+                product_id
+                for (product_id,) in db.query(CartItem.product_id).filter(
+                    CartItem.user_id == current_user.id,
+                    CartItem.product_id.in_(product_ids),
+                ).all()
+            }
+            wishlist_items_products_id = {
+                product_id
+                for (product_id,) in db.query(WishlistItem.product_id).filter(
+                    WishlistItem.user_id == current_user.id,
+                    WishlistItem.product_id.in_(product_ids),
+                ).all()
+            }
+
+        product_result = [
+            ProductResponse(
+                id=product.id,
+                name=product.name,
+                slug=product.slug,
+                description=product.description[:100],
+                regular_price=product.regular_price,
+                main_price=product.main_price,
+                images=[image.image_url for image in product.images],
+                available_stock=product.available_stock,
+                status=product.status,
+                created_at=product.created_at,
+                updated_at=product.updated_at,
+                wish_listed=product.id in wishlist_items_products_id,
+                cart_item_listed=product.id in cart_items_products_id,
+            )
+            for product in products
+        ]
+
+        return Response(
+            status_code=status.HTTP_200_OK,
+            success=True,
+            message="Featured products retrieved successfully",
+            data=product_result,
+            meta=Meta(
+                page=pagination.page,
+                skip=pagination.skip,
+                limit=pagination.limit,
+                total=count,
+            ),
+        )
+
     def find_product_by_slug(slug: str, db: Session, current_user: AuthUser = None):
         query = db.query(Product).filter(
             Product.slug == slug, Product.is_deleted == False)
@@ -253,6 +329,7 @@ class ProductsService:
 
         product = ProductResponse(id=product.id,
                                   name=product.name,
+                                  slug=product.slug,
                                   description=product.description,
                                   regular_price=product.regular_price,
                                   main_price=product.main_price,

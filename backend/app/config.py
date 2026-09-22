@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     debug: bool = False
 
     # Database
-    database_url: str = "sqlite:///./ecommerce.db"
+    database_url: str = "sqlite:///./data/ecommerce.db"
 
     # Security
     secret_key: str = "76357jhdhjvccsdadnkjbcdpomnulkjjdl;l"

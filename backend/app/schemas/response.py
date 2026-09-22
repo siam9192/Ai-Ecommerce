@@ -9,6 +9,7 @@ from datetime import datetime
 class ProductResponse(BaseModel):
     id: int
     name: str
+    slug: str
     description: Optional[str] = None
     regular_price: float
     main_price: float
@@ -78,9 +79,6 @@ class AIFinalResponse(BaseModel):
         default_factory=AIActions,
         description="Actions that the frontend/client should perform."
     )
-    
-    
-
 
 
 class CustomerResponse(BaseModel):
@@ -92,6 +90,7 @@ class CustomerResponse(BaseModel):
 class ProductResponseItem(BaseModel):
     id: int
     name: str
+    slug: str
     images: list[str]
 
 
