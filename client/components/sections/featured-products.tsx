@@ -1,13 +1,19 @@
 import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
-import { products } from "@/data/products";
 import ProductCard from "../ui/product-card";
+import { productService } from "@/api-services/products.api.services";
+import AppStatePageTracker from "@/components/shared/app-state-page-tracker";
 
-function FeaturedProducts() {
-  const featuredProducts = products.slice(0, 8);
+async function FeaturedProducts() {
+  const res = await productService.getFeaturedProducts();
+  const products = res.data;
 
   return (
     <section className="py-16">
+      <AppStatePageTracker
+        page="featured"
+        ids={products.map((product) => product.id)}
+      />
       <div className="container mx-auto px-4">
         {/* Header */}
         <div className="mb-8 flex items-end justify-between">
@@ -36,7 +42,7 @@ function FeaturedProducts() {
 
         {/* Products */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {featuredProducts.map((product, key) => (
+          {products.map((product, key) => (
             <ProductCard product={product} key={key} />
           ))}
         </div>

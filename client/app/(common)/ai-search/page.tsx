@@ -4,6 +4,7 @@ import ProductCard from "@/components/ui/product-card";
 import Pagination from "@/components/ui/pagination";
 import { products } from "@/data/products";
 import { useMemo, useState } from "react";
+import AppStatePageTracker from "@/components/shared/app-state-page-tracker";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -19,6 +20,10 @@ function AiSearchPage() {
 
   return (
     <div className="container mx-auto min-h-screen py-10">
+      <AppStatePageTracker
+        page="ai-search"
+        ids={visibleProducts.map((product) => product.id)}
+      />
       <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <p className="text-xl font-medium text-slate-800">
           AI search results · found {products.length} items

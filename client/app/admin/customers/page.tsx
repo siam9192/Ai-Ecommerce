@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FiArrowLeft, FiSearch, FiUser } from "react-icons/fi";
+import AppStatePageTracker from "@/components/shared/app-state-page-tracker";
 
 const customers = [
   {
@@ -41,6 +42,10 @@ const statusStyles: Record<string, string> = {
 export default function AdminCustomersPage() {
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-6 lg:px-6">
+      <AppStatePageTracker
+        page="customers"
+        ids={customers.map((_, index) => index + 1)}
+      />
       <div className="mx-auto max-w-[1400px]">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>

@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { login } from "@/api-services/auth.api.services";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   FiArrowLeft,
@@ -22,6 +25,42 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+  const { refetch } = useCurrentUser();
+
+  const getErrorMessage = (requestError: unknown) => {
+    const response = (
+      requestError as {
+        response?: { data?: { detail?: string | { msg?: string }[] } };
+      }
+    ).response;
+    const detail = response?.data?.detail;
+    if (typeof detail === "string") return detail;
+    if (Array.isArray(detail))
+      return detail
+        .map((item) => item.msg)
+        .filter(Boolean)
+        .join(", ");
+    return "Unable to sign in. Please check your details and try again.";
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+    try {
+      const response = await login({ email, password });
+      await refetch();
+      router.replace(response.data.user.role === "admin" ? "/admin" : "/");
+    } catch (requestError) {
+      console.log(requestError);
+      setError(getErrorMessage(requestError));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <main className="relative overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(79,70,229,0.18),_transparent_32%),linear-gradient(135deg,#f8fafc_0%,#eef2ff_50%,#f8fafc_100%)] px-4 py-12 sm:px-6 lg:px-8">
@@ -86,7 +125,7 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="space-y-5">
+              <form className="space-y-5" onSubmit={handleSubmit}>
                 <button
                   type="button"
                   className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
@@ -170,13 +209,20 @@ export default function LoginPage() {
                   </Link>
                 </div>
 
+                {error && (
+                  <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+                    {error}
+                  </p>
+                )}
+
                 <button
-                  type="button"
+                  type="submit"
+                  disabled={isSubmitting}
                   className="w-full rounded-2xl bg-primary px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition hover:bg-primary-hover hover:shadow-xl"
                 >
-                  Login to account
+                  {isSubmitting ? "Signing in..." : "Login to account"}
                 </button>
-              </div>
+              </form>
 
               <p className="mt-6 text-center text-sm text-slate-600">
                 Don&apos;t have an account?{" "}

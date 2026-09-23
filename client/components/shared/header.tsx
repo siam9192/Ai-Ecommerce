@@ -31,7 +31,11 @@ function Header() {
           </Link>
 
           {/* Search */}
-          <div className="hidden max-w-xl flex-1 md:block">
+          <form
+            action="/shop"
+            method="get"
+            className="hidden max-w-xl flex-1 md:block"
+          >
             <div className="relative">
               <FiSearch
                 size={19}
@@ -40,11 +44,13 @@ function Header() {
 
               <input
                 type="text"
+                name="search"
                 placeholder="Search products..."
+                aria-label="Search products"
                 className="w-full rounded-xl border border-border bg-muted/50 py-2.5 pl-11 pr-4 text-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
-          </div>
+          </form>
 
           {/* Navigation */}
           <nav className="hidden items-center gap-7 lg:flex">

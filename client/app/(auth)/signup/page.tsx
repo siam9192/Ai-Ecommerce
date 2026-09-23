@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { signup } from "@/api-services/auth.api.services";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   FiArrowLeft,
@@ -28,9 +30,50 @@ export default function SignupPage() {
     password: "",
     confirmPassword: "",
   });
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const updateField = (field: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const getErrorMessage = (requestError: unknown) => {
+    const response = (
+      requestError as {
+        response?: { data?: { detail?: string | { msg?: string }[] } };
+      }
+    ).response;
+    const detail = response?.data?.detail;
+    if (typeof detail === "string") return detail;
+    if (Array.isArray(detail))
+      return detail
+        .map((item) => item.msg)
+        .filter(Boolean)
+        .join(", ");
+    return "Unable to create your account. Please check your details and try again.";
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await signup({
+        full_name: form.name,
+        email: form.email,
+        password: form.password,
+      });
+      router.replace("/login?registered=1");
+    } catch (requestError) {
+      setError(getErrorMessage(requestError));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -94,7 +137,7 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              <div className="space-y-5">
+              <form className="space-y-5" onSubmit={handleSubmit}>
                 <button
                   type="button"
                   className="flex w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
@@ -224,13 +267,20 @@ export default function SignupPage() {
                   </span>
                 </label>
 
+                {error && (
+                  <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+                    {error}
+                  </p>
+                )}
+
                 <button
-                  type="button"
+                  type="submit"
+                  disabled={isSubmitting}
                   className="w-full rounded-2xl bg-primary px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition hover:bg-primary-hover hover:shadow-xl"
                 >
-                  Create account
+                  {isSubmitting ? "Creating account..." : "Create account"}
                 </button>
-              </div>
+              </form>
 
               <p className="mt-6 text-center text-sm text-slate-600">
                 Already have an account?{" "}

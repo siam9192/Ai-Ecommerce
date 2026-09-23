@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { products } from "@/data/products";
 import ProductDetailsClient from "@/components/sections/product-details-client";
+import { productService } from "@/api-services/products.api.services";
 import { FiArrowLeft } from "react-icons/fi";
-import type { Metadata } from "next";
 
 interface ProductDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -13,7 +12,8 @@ export default async function ProductDetailsPage({
 }: ProductDetailsPageProps) {
   const { id } = await params;
 
-  const product = products.find((p) => p.slug === id);
+  const response = await productService.getProductBySlug(id);
+  const product = response.success ? response.data : undefined;
 
   if (!product) {
     return (
@@ -56,9 +56,9 @@ export default async function ProductDetailsPage({
     },
     offers: {
       "@type": "Offer",
-      price: product.price,
+      price: product.main_price,
       priceCurrency: "USD",
-      availability: product.stock > 0 ? "InStock" : "OutOfStock",
+      availability: product.available_stock > 0 ? "InStock" : "OutOfStock",
     },
     aggregateRating: {
       "@type": "AggregateRating",

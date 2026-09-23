@@ -7,6 +7,7 @@ import {
   FiSearch,
   FiTrash2,
 } from "react-icons/fi";
+import AppStatePageTracker from "@/components/shared/app-state-page-tracker";
 
 const products = [
   {
@@ -50,6 +51,10 @@ const products = [
 export default function AdminProductsPage() {
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-6 lg:px-6">
+      <AppStatePageTracker
+        page="products"
+        ids={products.map((product) => product.id)}
+      />
       <div className="mx-auto max-w-[1400px]">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FiArrowLeft, FiPackage, FiSearch, FiTruck } from "react-icons/fi";
+import AppStatePageTracker from "@/components/shared/app-state-page-tracker";
 
 const orders = [
   {
@@ -45,6 +46,10 @@ const statusStyles: Record<string, string> = {
 export default function AdminOrdersPage() {
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-6 lg:px-6">
+      <AppStatePageTracker
+        page="orders"
+        ids={orders.map((order) => Number(order.id.replace("#", "")))}
+      />
       <div className="mx-auto max-w-[1400px]">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>

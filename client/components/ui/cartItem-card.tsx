@@ -1,12 +1,20 @@
+"use client"
 import { CartItem } from "@/types/cart.type";
 import Image from "next/image";
-import React, { useState } from "react";
 import { FiMinus, FiPlus, FiTrash2 } from "react-icons/fi";
+import React, { useEffect, useState } from "react";
 interface Props {
   item: CartItem;
+  onQuantityChange: (productId: number, quantity: number) => void;
+  onRemove: (productId: number) => void;
 }
-function CartItemCard({ item }: Props) {
+function CartItemCard({ item, onQuantityChange, onRemove }: Props) {
   const [quantity, setQuantity] = useState(item.quantity);
+  const productId = item.productId ?? item.id;
+
+  useEffect(() => {
+    setQuantity(item.quantity);
+  }, [item.quantity]);
 
   return (
     <div
@@ -30,6 +38,7 @@ function CartItemCard({ item }: Props) {
                   const newQty = quantity - 1;
                   if (newQty <= 0) return;
                   setQuantity(newQty);
+                  onQuantityChange(productId, newQty);
                 }}
               >
                 <FiMinus size={14} />
@@ -41,7 +50,9 @@ function CartItemCard({ item }: Props) {
                 type="button"
                 className="rounded-full p-1 text-slate-500 hover:bg-white"
                 onClick={() => {
-                  setQuantity(quantity + 1);
+                  const newQty = quantity + 1;
+                  setQuantity(newQty);
+                  onQuantityChange(productId, newQty);
                 }}
               >
                 <FiPlus size={14} />
@@ -51,6 +62,7 @@ function CartItemCard({ item }: Props) {
             <button
               type="button"
               className="inline-flex items-center gap-2 text-sm font-medium text-red-500 transition hover:text-red-600"
+              onClick={() => onRemove(productId)}
             >
               <FiTrash2 size={14} />
               Remove

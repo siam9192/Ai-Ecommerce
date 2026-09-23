@@ -1,18 +1,21 @@
-import Footer from '@/components/sections/footer'
-import Header from '@/components/shared/header'
-import React, { ReactNode } from 'react'
+import Footer from "@/components/sections/footer";
+import Header from "@/components/shared/header";
+import ProtectedRoute from "@/components/auth/protected-route";
+import React, { ReactNode } from "react";
 
 interface Props {
-    children:ReactNode
+  children: ReactNode;
 }
-function layout({children}:Props) {
+function layout({ children }: Props) {
   return (
-    <div>
-        <Header/>
+    <ProtectedRoute guestOnly>
+      <div>
+        <Header />
         {children}
-        <Footer/>
-    </div>
-  )
+        <Footer />
+      </div>
+    </ProtectedRoute>
+  );
 }
 
-export default layout
+export default layout;
