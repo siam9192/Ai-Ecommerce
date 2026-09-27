@@ -1,50 +1,23 @@
 import Link from "next/link";
-import { FiArrowLeft, FiSearch, FiUser } from "react-icons/fi";
+import { getUsers } from "@/api-services/user.api.services";
 import AppStatePageTracker from "@/components/shared/app-state-page-tracker";
-
-const customers = [
-  {
-    name: "Alicia Gomez",
-    email: "alicia@example.com",
-    orders: 14,
-    totalSpent: "$2,430",
-    status: "Active",
-  },
-  {
-    name: "Daniel Lee",
-    email: "daniel@example.com",
-    orders: 9,
-    totalSpent: "$1,640",
-    status: "Active",
-  },
-  {
-    name: "Sarah Kim",
-    email: "sarah@example.com",
-    orders: 6,
-    totalSpent: "$980",
-    status: "New",
-  },
-  {
-    name: "Marcus Reed",
-    email: "marcus@example.com",
-    orders: 12,
-    totalSpent: "$3,140",
-    status: "VIP",
-  },
-];
+import { FiArrowLeft, FiSearch, FiUser } from "react-icons/fi";
 
 const statusStyles: Record<string, string> = {
-  Active: "bg-emerald-100 text-emerald-700",
-  New: "bg-blue-100 text-blue-700",
-  VIP: "bg-violet-100 text-violet-700",
+  active: "bg-emerald-100 text-emerald-700",
+  blocked: "bg-red-100 text-red-700",
 };
 
-export default function AdminCustomersPage() {
+export default async function AdminCustomersPage() {
+  const response = await getUsers();
+
+  const customers = response.data;
+
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-6 lg:px-6">
       <AppStatePageTracker
         page="customers"
-        ids={customers.map((_, index) => index + 1)}
+        ids={customers.map((customer) => customer.id)}
       />
       <div className="mx-auto max-w-[1400px]">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -61,14 +34,14 @@ export default function AdminCustomersPage() {
             </h1>
           </div>
 
-          <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-500 shadow-sm">
+          {/* <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-500 shadow-sm">
             <FiSearch size={16} />
             <input
               type="text"
               placeholder="Search customers"
               className="w-44 border-0 bg-transparent text-sm outline-none placeholder:text-slate-400"
             />
-          </div>
+          </div> */}
         </div>
 
         <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
@@ -83,34 +56,31 @@ export default function AdminCustomersPage() {
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-slate-500">
+                  <th className="px-5 py-3 font-medium">ID</th>
                   <th className="px-5 py-3 font-medium">Name</th>
                   <th className="px-5 py-3 font-medium">Email</th>
-                  <th className="px-5 py-3 font-medium">Orders</th>
-                  <th className="px-5 py-3 font-medium">Total spent</th>
                   <th className="px-5 py-3 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {customers.map((customer) => (
                   <tr
-                    key={customer.email}
+                    key={customer.id}
                     className="border-b border-slate-100 last:border-b-0"
                   >
                     <td className="px-5 py-4 font-semibold text-slate-900">
-                      {customer.name}
+                      #{customer.id}
+                    </td>
+                    <td className="px-5 py-4 font-semibold text-slate-900">
+                      {customer.full_name}
                     </td>
                     <td className="px-5 py-4 text-slate-700">
                       {customer.email}
                     </td>
-                    <td className="px-5 py-4 text-slate-700">
-                      {customer.orders}
-                    </td>
-                    <td className="px-5 py-4 font-medium text-slate-900">
-                      {customer.totalSpent}
-                    </td>
+
                     <td className="px-5 py-4">
                       <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[customer.status]}`}
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[customer.status.toLowerCase()] ?? "bg-slate-100 text-slate-700"}`}
                       >
                         {customer.status}
                       </span>

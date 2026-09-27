@@ -11,7 +11,6 @@ interface Props {
 function CartItemCard({ item, onQuantityChange, onRemove }: Props) {
   const [quantity, setQuantity] = useState(item.quantity);
   const productId = item.productId ?? item.id;
-
   useEffect(() => {
     setQuantity(item.quantity);
   }, [item.quantity]);

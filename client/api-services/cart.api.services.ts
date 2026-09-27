@@ -3,22 +3,22 @@
 import { axios_instance } from "@/axios";
 import type {
   AddCartItemPayload,
-  CartItemResponse,
+  CartItem,
   UpdateCartItemPayload,
 } from "@/types/cart.type";
 import type { Response as ApiResponse } from "@/types/response";
 
-export async function getCart(): Promise<ApiResponse<CartItemResponse[]>> {
+export async function getCart(): Promise<ApiResponse<CartItem[]>> {
   const response =
-    await axios_instance.get<ApiResponse<CartItemResponse[]>>("/cart");
+    await axios_instance.get<ApiResponse<CartItem[]>>("/cart");
   return response.data;
 }
 
 export async function getCartItem(
   productId: number,
-): Promise<ApiResponse<CartItemResponse | null>> {
+): Promise<ApiResponse<CartItem | null>> {
   const response = await axios_instance.get<
-    ApiResponse<CartItemResponse | null>
+    ApiResponse<CartItem | null>
   >(`/cart/items/${productId}`);
   return response.data;
 }
@@ -36,8 +36,8 @@ export async function addItem(
 export async function updateItem(
   productId: number,
   payload: UpdateCartItemPayload,
-): Promise<ApiResponse<CartItemResponse>> {
-  const response = await axios_instance.patch<ApiResponse<CartItemResponse>>(
+): Promise<ApiResponse<CartItem>> {
+  const response = await axios_instance.patch<ApiResponse<CartItem>>(
     `/cart/items/${productId}`,
     payload,
   );

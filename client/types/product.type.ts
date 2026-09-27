@@ -1,23 +1,20 @@
 import { Review } from "./review.type";
 
 export interface Product {
-  id:number
+  id: number;
   name: string;
-  slug:string
-  regular_price:number
+  slug: string;
+  description?: string;
+  regular_price: number;
   main_price: number;
-  description: string;
   images: string[];
   available_stock: number;
-  rating: number;
+  rating?: number;
   category?: string;
+  status?: string;
   reviews?: Review[];
-  cart_listed:boolean
-  wish_listed:boolean
-  created_at:string
-  updated_at:string
+  cart_item_listed?: boolean;
+  wish_listed?: boolean;
+  created_at: string;
+  updated_at: string;
 }
-
-
-
-

@@ -88,13 +88,14 @@ export default function CartPage() {
   }, []);
 
   const subtotal = cartItems.reduce(
-    (total, item) => total + (item.product?.main_price ?? 0) * item.quantity,
+    (total, item) => total + (item.productId ?? 0) * item.quantity,
     0,
   );
   const shipping = subtotal > 500 ? 0 : 18;
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
 
+  
   return (
     <ProtectedRoute customerOnly>
       <main className="container mx-auto min-h-screen px-4 py-10 sm:px-6 lg:px-8">
@@ -125,17 +126,9 @@ export default function CartPage() {
             ) : (
               cartItems.map(
                 (item) =>
-                  item.product && (
+                   (
                     <CartItemCard
-                      item={{
-                        id: item.id,
-                        productId: item.product_id,
-                        name: item.product.name,
-                        price: item.product.main_price,
-                        image: item.product.images[0],
-                        quantity: item.quantity,
-                        inStock: item.product.available_stock > 0,
-                      }}
+                      item={item}
                       key={item.id}
                       onQuantityChange={async (productId, quantity) => {
                         await updateItem(productId, { quantity });

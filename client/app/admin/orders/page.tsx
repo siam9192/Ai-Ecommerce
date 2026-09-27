@@ -1,54 +1,36 @@
 import Link from "next/link";
-import { FiArrowLeft, FiPackage, FiSearch, FiTruck } from "react-icons/fi";
+import { getOrders, type Order } from "@/api-services/order.api.services";
 import AppStatePageTracker from "@/components/shared/app-state-page-tracker";
-
-const orders = [
-  {
-    id: "#10482",
-    customer: "Alicia Gomez",
-    total: "$429.99",
-    status: "Delivered",
-    date: "12 Aug 2026",
-    items: 3,
-  },
-  {
-    id: "#10417",
-    customer: "Daniel Lee",
-    total: "$129.95",
-    status: "In transit",
-    date: "02 Aug 2026",
-    items: 1,
-  },
-  {
-    id: "#10366",
-    customer: "Sarah Kim",
-    total: "$84.99",
-    status: "Processing",
-    date: "18 Jul 2026",
-    items: 2,
-  },
-  {
-    id: "#10314",
-    customer: "Marcus Reed",
-    total: "$239.00",
-    status: "Delivered",
-    date: "05 Jul 2026",
-    items: 4,
-  },
-];
+import { FiArrowLeft, FiPackage, FiSearch, FiTruck } from "react-icons/fi";
 
 const statusStyles: Record<string, string> = {
-  Delivered: "bg-emerald-100 text-emerald-700",
-  "In transit": "bg-blue-100 text-blue-700",
-  Processing: "bg-amber-100 text-amber-700",
+  pending: "bg-amber-100 text-amber-700",
+  processing: "bg-blue-100 text-blue-700",
+  delivered: "bg-emerald-100 text-emerald-700",
 };
 
-export default function AdminOrdersPage() {
+function formatMoney(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+export default async function AdminOrdersPage() {
+  const response = await getOrders();
+  const orders = response.success ? response.data : [];
+
+  const totalRevenue = orders.reduce(
+    (sum: number, order: Order) => sum + Number(order.total_price || 0),
+    0,
+  );
+
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-6 lg:px-6">
       <AppStatePageTracker
         page="orders"
-        ids={orders.map((order) => Number(order.id.replace("#", "")))}
+        ids={orders.map((order: Order) => order.id)}
       />
       <div className="mx-auto max-w-[1400px]">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -84,15 +66,25 @@ export default function AdminOrdersPage() {
         <div className="grid gap-4 md:grid-cols-3">
           <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm text-slate-500">Total orders</p>
-            <p className="mt-3 text-3xl font-bold text-slate-900">1,284</p>
+            <p className="mt-3 text-3xl font-bold text-slate-900">
+              {orders.length}
+            </p>
           </div>
           <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm text-slate-500">Pending</p>
-            <p className="mt-3 text-3xl font-bold text-slate-900">84</p>
+            <p className="mt-3 text-3xl font-bold text-slate-900">
+              {
+                orders.filter(
+                  (order: Order) => order.status.toLowerCase() === "pending",
+                ).length
+              }
+            </p>
           </div>
           <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm text-slate-500">Revenue</p>
-            <p className="mt-3 text-3xl font-bold text-slate-900">$84.2K</p>
+            <p className="mt-3 text-3xl font-bold text-slate-900">
+              {formatMoney(totalRevenue)}
+            </p>
           </div>
         </div>
 
@@ -118,25 +110,29 @@ export default function AdminOrdersPage() {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
+                {orders.map((order: Order) => (
                   <tr
                     key={order.id}
                     className="border-b border-slate-100 last:border-b-0"
                   >
                     <td className="px-5 py-4 font-semibold text-slate-900">
-                      {order.id}
+                      #{order.id}
                     </td>
                     <td className="px-5 py-4 text-slate-700">
-                      {order.customer}
+                      {order.customer?.name ?? `Customer ${order.customer_id}`}
                     </td>
-                    <td className="px-5 py-4 text-slate-700">{order.date}</td>
-                    <td className="px-5 py-4 text-slate-700">{order.items}</td>
+                    <td className="px-5 py-4 text-slate-700">
+                      {new Date(order.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-5 py-4 text-slate-700">
+                      {order.items.length}
+                    </td>
                     <td className="px-5 py-4 font-semibold text-slate-900">
-                      {order.total}
+                      {formatMoney(order.total_price)}
                     </td>
                     <td className="px-5 py-4">
                       <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[order.status]}`}
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[order.status.toLowerCase()] ?? "bg-slate-100 text-slate-700"}`}
                       >
                         {order.status}
                       </span>

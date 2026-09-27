@@ -10,14 +10,6 @@ export interface CartItem {
   inStock?: boolean;
 }
 
-export interface CartItemResponse {
-  id: number;
-  user_id: number;
-  product_id: number;
-  quantity: number;
-  product?: Product;
-}
-
 export interface AddCartItemPayload {
   product_id: number;
   quantity?: number;

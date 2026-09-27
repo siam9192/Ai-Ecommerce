@@ -27,6 +27,11 @@ export interface OrderItem {
 export interface Order {
   id: number;
   customer_id: number;
+  customer?: {
+    id: number;
+    name: string;
+    profile_picture?: string | null;
+  } | null;
   total_price: number;
   delivery_address: DeliveryAddress;
   status: string;
@@ -55,9 +60,7 @@ export async function getOrders(): Promise<ApiResponse<Order[]>> {
   return response.data;
 }
 
-export async function getOrder(
-  orderId: number,
-): Promise<ApiResponse<Order>> {
+export async function getOrder(orderId: number): Promise<ApiResponse<Order>> {
   const response = await axios_instance.get<ApiResponse<Order>>(
     `/orders/${orderId}`,
   );
