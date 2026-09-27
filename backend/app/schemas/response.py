@@ -11,6 +11,7 @@ class ProductResponse(BaseModel):
     name: str
     slug: str
     description: Optional[str] = None
+    category:Optional[str]=None
     regular_price: float
     main_price: float
     images: list[str]

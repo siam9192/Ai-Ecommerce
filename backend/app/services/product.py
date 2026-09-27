@@ -202,6 +202,7 @@ class ProductsService:
                 name=product.name,
                 slug=product.slug,
                 description=product.description[:100],
+                category = product.category,
                 regular_price=product.regular_price,
                 main_price=product.main_price,
                 images=[image.image_url for image in product.images],

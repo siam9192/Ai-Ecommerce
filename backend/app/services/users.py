@@ -44,7 +44,8 @@ class UserService:
         pagination_query: PaginationQuery,
         db: Session,
     ):
-        query = db.query(User).filter(User.is_deleted.is_(False))
+        query = db.query(User).filter(User.is_deleted.is_(
+            False), User.role == UserRole.CUSTOMER)
 
         if payload.email is not None:
             query = query.filter(User.email == str(payload.email).lower())
@@ -75,9 +76,6 @@ class UserService:
                 total=total,
             ),
         )
-        
-    
-        
 
     @staticmethod
     def register(payload: RegisterPayload, db: Session):

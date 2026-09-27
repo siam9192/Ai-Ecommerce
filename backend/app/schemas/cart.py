@@ -11,3 +11,12 @@ class AddCartItemPayload(BaseModel):
 class UpdateCartItemPayload(BaseModel):
     quantity: Optional[int] = Field(
         default=None, ge=1, description="Updated cart quantity")
+
+class CartResponse(BaseModel):
+    id: int
+    productId: int | None = None
+    name: str
+    price: float
+    image: str
+    quantity: int
+    inStock: bool | None = None

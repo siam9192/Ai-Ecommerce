@@ -3,6 +3,7 @@ from fastapi import HTTPException, status
 from app.models import CartItem, Product, User
 from app.schemas.cart import AddCartItemPayload, UpdateCartItemPayload
 from app.schemas.utils import Response
+from app.schemas.cart import CartResponse
 
 
 class CartService:
@@ -15,11 +16,23 @@ class CartService:
             .order_by(CartItem.created_at.desc())
             .all()
         )
+
         return Response(
             success=True,
             status_code=status.HTTP_200_OK,
             message="Cart retrieved successfully",
-            data=cart,
+            data=[
+                CartResponse(
+                    id=c.id,
+                    productId=c.product.id,
+                    name=c.product.name,
+                    price=float(c.product.main_price),
+                    image=c.product.images[0].image_url if c.product.images else "",
+                    quantity=c.quantity,
+                    inStock=c.product.available_stock > 0,
+                )
+                for c in cart
+            ]
         )
 
     @staticmethod

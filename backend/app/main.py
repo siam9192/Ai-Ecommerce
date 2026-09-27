@@ -16,7 +16,7 @@ from app.controllers.review import router as review_router
 from app.controllers.wishlist import router as wishlist_router
 from app.controllers.users import router as users_router
 from app.database import engine
-from app.helpers import init_users
+from app.helpers import init_products, init_users
 from app.models import Base
 import socket
 
@@ -83,6 +83,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 def startup():
     Base.metadata.create_all(bind=engine)
     init_users()
+    init_products()
 
 
 @app.get("/health", tags=["Health"])

@@ -16,7 +16,6 @@ router = APIRouter(prefix="/users", tags=["Users"])
 def users_find(
     payload: FindUsersPayload = Depends(),
     pagination_query: PaginationQuery = Depends(),
-    current_user: AuthUser = Depends(auth_guard([UserRole.ADMIN])),
     db: Session = Depends(get_db),
 ):
     return UserService.users_find(payload, pagination_query, db)

@@ -2,8 +2,9 @@ from app.schemas.utils import PaginationQuery
 import json
 from pathlib import Path
 from app.schemas.users import RegisterPayload
+from app.schemas.product import AddProductPayload
 from app.database import SessionLocal
-from app.models import User
+from app.models import User, Product
 
 
 def generate_slug(name: str):
@@ -52,6 +53,42 @@ def init_users():
                 print(f"Registered user-{response.data['id']}")
 
             print("Init users completed")
+
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+def init_products():
+    from app.services.product import ProductsService
+
+    db = SessionLocal()
+    try:
+        products_count = db.query(Product).count()
+        if products_count == 0:
+            product_payloads = get_json(
+                Path(__file__).resolve().parent / "JSON_DATA" / "products.json")
+            product_payloads = [
+                AddProductPayload(
+                    name=product["name"],
+                    description=product["description"],
+                    regular_price=product["regular_price"],
+                    main_price=product["main_price"],
+                    images=product.get("images", []),
+                    category=product["category"],
+                    available_stock=product.get("available_stock", 0),
+                    status=product.get("status"),
+                )
+                for product in product_payloads
+            ]
+            print("Init products started")
+            for payload in product_payloads:
+                response = ProductsService.add_product(payload=payload, db=db)
+                print(f"Created product-{response.data['id']}")
+
+            print("Init products completed")
 
     except Exception:
         db.rollback()

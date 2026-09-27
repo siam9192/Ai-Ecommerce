@@ -4,7 +4,7 @@
     "description": "Over-ear wireless headphones with deep bass and long battery life.",
     "regular_price": 3500,
     "main_price": 2799,
-    "images": ["https://example.com/images/headphones-1.jpg"],
+    "images": ["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80"],
     "category": "Electronics",
     "available_stock": 45
   },
@@ -13,7 +13,7 @@
     "description": "RGB mechanical keyboard with responsive switches and customizable lighting.",
     "regular_price": 4500,
     "main_price": 3599,
-    "images": ["https://example.com/images/keyboard-1.jpg"],
+    "images": ["https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&q=80"],
     "category": "Computer Accessories",
     "available_stock": 30
   },
@@ -22,7 +22,7 @@
     "description": "High-capacity power bank with fast charging and dual USB output.",
     "regular_price": 2800,
     "main_price": 2199,
-    "images": ["https://example.com/images/powerbank-1.jpg"],
+    "images": ["https://images.unsplash.com/photo-1609592424009-322197e411b4?w=800&q=80"],
     "category": "Mobile Accessories",
     "available_stock": 75
   },
@@ -31,7 +31,7 @@
     "description": "Smartwatch with fitness tracking, notifications, and multiple sports modes.",
     "regular_price": 6000,
     "main_price": 4799,
-    "images": ["https://example.com/images/smartwatch-1.jpg"],
+    "images": ["https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80"],
     "category": "Wearables",
     "available_stock": 25
   },
@@ -40,7 +40,7 @@
     "description": "Compact 33W USB-C fast charger for smartphones and tablets.",
     "regular_price": 1600,
     "main_price": 1199,
-    "images": ["https://example.com/images/charger-1.jpg"],
+    "images": ["https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&q=80"],
     "category": "Mobile Accessories",
     "available_stock": 100
   },
@@ -49,7 +49,7 @@
     "description": "Ergonomic gaming mouse with adjustable DPI and programmable buttons.",
     "regular_price": 2200,
     "main_price": 1699,
-    "images": ["https://example.com/images/mouse-1.jpg"],
+    "images": ["https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&q=80"],
     "category": "Computer Accessories",
     "available_stock": 60
   },
@@ -58,7 +58,7 @@
     "description": "Compact wireless speaker with powerful sound and water resistance.",
     "regular_price": 3200,
     "main_price": 2499,
-    "images": ["https://example.com/images/speaker-1.jpg"],
+    "images": ["https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=800&q=80"],
     "category": "Audio",
     "available_stock": 40
   },
@@ -67,7 +67,7 @@
     "description": "Water-resistant backpack with multiple compartments and laptop protection.",
     "regular_price": 2500,
     "main_price": 1899,
-    "images": ["https://example.com/images/backpack-1.jpg"],
+    "images": ["https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&q=80"],
     "category": "Bags",
     "available_stock": 55
   },
@@ -76,7 +76,7 @@
     "description": "Full HD webcam with built-in microphone and auto light correction.",
     "regular_price": 3000,
     "main_price": 2299,
-    "images": ["https://example.com/images/webcam-1.jpg"],
+    "images": ["https://images.unsplash.com/photo-1587826080692-f439cd0b70da?w=800&q=80"],
     "category": "Computer Accessories",
     "available_stock": 35
   },
@@ -85,8 +85,98 @@
     "description": "Wireless controller with dual analog sticks and rechargeable battery.",
     "regular_price": 3800,
     "main_price": 2999,
-    "images": ["https://example.com/images/controller-1.jpg"],
+    "images": ["https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?w=800&q=80"],
     "category": "Gaming",
     "available_stock": 20
+  },
+  {
+    "name": "Noise Cancelling Earbuds",
+    "description": "Compact true wireless earbuds with active noise cancellation and touch control.",
+    "regular_price": 4200,
+    "main_price": 3299,
+    "images": ["https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80"],
+    "category": "Audio",
+    "available_stock": 50
+  },
+  {
+    "name": "4K Ultra HD Action Camera",
+    "description": "Waterproof action camera with wide-angle lens and electronic image stabilization.",
+    "regular_price": 8500,
+    "main_price": 6999,
+    "images": ["https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&q=80"],
+    "category": "Electronics",
+    "available_stock": 15
+  },
+  {
+    "name": "Ergonomic Desk Chair",
+    "description": "Breathable mesh office chair with adjustable lumbar support and armrests.",
+    "regular_price": 12000,
+    "main_price": 9500,
+    "images": ["https://images.unsplash.com/photo-1580481072645-022f9a6d8310?w=800&q=80"],
+    "category": "Furniture",
+    "available_stock": 10
+  },
+  {
+    "name": "Aluminum Laptop Stand",
+    "description": "Foldable and height-adjustable stand for improved ergonomics and cooling.",
+    "regular_price": 1800,
+    "main_price": 1399,
+    "images": ["https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=800&q=80"],
+    "category": "Computer Accessories",
+    "available_stock": 80
+  },
+  {
+    "name": "RGB Extended Mouse Pad",
+    "description": "Large gaming desk mat with stitched edges and customizable lighting modes.",
+    "regular_price": 1500,
+    "main_price": 1099,
+    "images": ["https://images.unsplash.com/photo-1616588589676-62b3bd4ff6d2?w=800&q=80"],
+    "category": "Computer Accessories",
+    "available_stock": 90
+  },
+  {
+    "name": "Smart Fitness Band",
+    "description": "Lightweight activity tracker with heart rate monitor and sleep tracking.",
+    "regular_price": 2500,
+    "main_price": 1899,
+    "images": ["https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?w=800&q=80"],
+    "category": "Wearables",
+    "available_stock": 65
+  },
+  {
+    "name": "USB Condenser Microphone",
+    "description": "Plug-and-play microphone designed for streaming, podcasting, and voiceovers.",
+    "regular_price": 4800,
+    "main_price": 3799,
+    "images": ["https://images.unsplash.com/photo-1590658006821-04f4008d5717?w=800&q=80"],
+    "category": "Audio",
+    "available_stock": 28
+  },
+  {
+    "name": "Magnetic Wireless Charger",
+    "description": "15W fast magnetic charging pad compatible with Qi-enabled smartphones.",
+    "regular_price": 2100,
+    "main_price": 1599,
+    "images": ["https://images.unsplash.com/photo-1622445268465-8422634e2c83?w=800&q=80"],
+    "category": "Mobile Accessories",
+    "available_stock": 70
+  },
+  {
+    "name": "LED Desk Lamp with Wireless Charging",
+    "description": "Dimmable eye-caring desk lamp featuring built-in phone charging pad.",
+    "regular_price": 3200,
+    "main_price": 2499,
+    "images": ["https://images.unsplash.com/photo-1534073828943-f801091bb18c?w=800&q=80"],
+    "category": "Electronics",
+    "available_stock": 40
+  },
+  {
+    "name": "Multi-Port USB-C Hub",
+    "description": "7-in-1 adapter hub featuring HDMI, USB 3.0, SD card reader, and PD charging.",
+    "regular_price": 3600,
+    "main_price": 2799,
+    "images": ["https://images.unsplash.com/photo-1544652478-6653e09f18a2?w=800&q=80"],
+    "category": "Computer Accessories",
+    "available_stock": 50
   }
 ]
