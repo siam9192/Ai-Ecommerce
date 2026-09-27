@@ -1,3 +1,5 @@
+"use client";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import Link from "next/link";
 import { FiSearch, FiShoppingCart, FiUser, FiHeart } from "react-icons/fi";
 import { RiGeminiLine } from "react-icons/ri";
@@ -18,6 +20,8 @@ const navItems = [
 ];
 
 function Header() {
+  const { user, isLoading } = useCurrentUser();
+
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-white/90 backdrop-blur-md">
       <div className="container mx-auto px-4">
@@ -89,27 +93,22 @@ function Header() {
               </span>
             </Link>
 
-            {/* Ai button */}
-
-            <button className="rounded-xl p-2.5 text-foreground transition hover:bg-muted hover:text-primary">
-              <RiGeminiLine size={26} />
-            </button>
-
-            {/* Login */}
-            <Link
-              href="/login"
-              className="ml-1 flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary-hover hover:shadow-md"
-            >
-              <FiUser size={17} />
-              <span>Login</span>
-            </Link>
-
-            <Link
-              href="/my-orders"
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:border-primary hover:text-primary"
-            >
-              My Orders
-            </Link>
+            {isLoading ? null : !user ? (
+              <Link
+                href="/login"
+                className="ml-1 flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary-hover hover:shadow-md"
+              >
+                <FiUser size={17} />
+                <span>Login</span>
+              </Link>
+            ) : (
+              <Link
+                href="/my-orders"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:border-primary hover:text-primary"
+              >
+                My Orders
+              </Link>
+            )}
           </div>
         </div>
       </div>

@@ -27,11 +27,12 @@ export async function login(
 
   const token = response.data.data.access_token;
   (await cookies()).set("access_token", token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-  });
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+  expires: new Date(Date.now() + 1000 * 60 * 2000),
+});
 
   return response.data;
 }
