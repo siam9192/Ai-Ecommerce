@@ -36,13 +36,18 @@ def ask(
             f"current-path: {client_state.current_path}\n"
             f"featured-product-ids: {client_state.featured_product_ids}\n"
             f"shop-product-ids: {client_state.shop_product_ids}\n"
+            f"ai-search-product-ids: {client_state.ai_search_products_id}\n"
             f"order-ids: {client_state.order_ids}\n"
             f"customer-ids: {client_state.customer_ids}\n"
+            f"customer-order-ids: {client_state.customer_order_ids}\n"
+            f"cart-items-ids: {client_state.cart_items_id}\n"
+            f"wishlist-items-ids: {client_state.wishlist_items_id}\n"
             f"is_authenticated: {'yes' if is_authenticated else 'no'}\n"
             f"user-id: {user_id}\n"
             f"user-role: {user_role}"
         )
     )
+
     result = agent.invoke({
         "messages": [*history_messages, application_state, HumanMessage(content=message)]
     })

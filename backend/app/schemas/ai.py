@@ -1,13 +1,22 @@
 from pydantic import BaseModel, Field
 from typing import Literal, Optional
 
+from pydantic import BaseModel, Field
 
-class ClientState (BaseModel):
+
+class ClientState(BaseModel):
     current_path: str = "/"
+
     featured_product_ids: list[int] = Field(default_factory=list)
     shop_product_ids: list[int] = Field(default_factory=list)
+    ai_search_product_ids: list[int] = Field(default_factory=list)
+
     order_ids: list[int] = Field(default_factory=list)
     customer_ids: list[int] = Field(default_factory=list)
+    customer_order_ids: list[int] = Field(default_factory=list)
+
+    cart_item_ids: list[int] = Field(default_factory=list)
+    wishlist_item_ids: list[int] = Field(default_factory=list)
 
 
 class ChatHistory(BaseModel):

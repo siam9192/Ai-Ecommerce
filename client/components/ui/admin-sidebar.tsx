@@ -28,7 +28,7 @@ function AdminSidebar() {
     const navigate = useRouter()
     const pathname = usePathname ()
   return (
-      <aside className="hidden w-72 shrink-0 rounded-[28px] bg-slate-950 p-5 text-white lg:block">
+      <aside className="hidden w-72 shrink-0 rounded-[28px] bg-slate-950 p-5 text-white lg:block h-screen">
           <div className="mb-8">
             <Link
               href="/"

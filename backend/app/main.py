@@ -15,6 +15,7 @@ from app.controllers.product import router as product_router
 from app.controllers.review import router as review_router
 from app.controllers.wishlist import router as wishlist_router
 from app.controllers.users import router as users_router
+from app.controllers.overview import router as overview_router
 from app.database import engine
 from app.helpers import init_products, init_users
 from app.models import Base
@@ -101,3 +102,4 @@ app.include_router(prefix=api_prefix, router=review_router)
 app.include_router(prefix=api_prefix, router=auth_router)
 app.include_router(prefix=api_prefix, router=users_router)
 app.include_router(prefix=api_prefix, router=ai_router)
+app.include_router(prefix=api_prefix, router=overview_router)

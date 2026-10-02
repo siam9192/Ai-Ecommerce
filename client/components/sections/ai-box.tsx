@@ -13,13 +13,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { setAiOpen } from "@/redux/features/appState-slice";
 
 interface ChatMessage {
-  role: "AI" | "Human";
+  role: "user" | "assistant";
   content: string;
 }
 
 const initialMessages: ChatMessage[] = [
   {
-    role: "AI",
+    role: "assistant",
     content: "Hello! 👋 I'm your AI Assistant. How can I help you today?",
   },
 ];
@@ -31,29 +31,64 @@ const suggestions = [
 ];
 
 function AiBox() {
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
-  const bottomRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [hasLoadedHistory, setHasLoadedHistory] = useState(false);
 
-  const dispatch = useDispatch();
-
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const dispatch = useDispatch()
+  // Load chat history
   useEffect(() => {
-    const current = bottomRef.current;
-    if (current) {
-      current.scrollIntoView({ behavior: "smooth" });
+    try {
+      const storedHistory = sessionStorage.getItem("chat_history");
+
+      if (storedHistory) {
+        const history: ChatMessage[] = JSON.parse(storedHistory);
+
+        if (Array.isArray(history) && history.length > 0) {
+          setMessages(history);
+        } else {
+          setMessages(initialMessages);
+        }
+      } else {
+        setMessages(initialMessages);
+      }
+    } catch (error) {
+      console.error("Failed to load chat history:", error);
+      sessionStorage.removeItem("chat_history");
+      setMessages(initialMessages);
+    } finally {
+      setHasLoadedHistory(true);
     }
-  }, [messages]);
+  }, []);
 
+  // Save chat history
+  useEffect(() => {
+    if (!hasLoadedHistory || messages.length === 0) return;
+
+    sessionStorage.setItem("chat_history", JSON.stringify(messages));
+  }, [messages, hasLoadedHistory]);
+
+  // Scroll to bottom
+  useEffect(() => {
+    if (!hasLoadedHistory) return;
+
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }, [messages, hasLoadedHistory]);
   const handleSend = () => {
-    if (!input.trim()) return;
-
     const text = input.trim();
 
+    if (!text || isTyping) return;
+
+    // Add user message
     setMessages((prev) => [
       ...prev,
       {
-        role: "Human",
+        role: "user",
         content: text,
       },
     ]);
@@ -61,11 +96,12 @@ function AiBox() {
     setInput("");
     setIsTyping(true);
 
+    // Temporary AI response
     setTimeout(() => {
       setMessages((prev) => [
         ...prev,
         {
-          role: "AI",
+          role: "assistant",
           content:
             "I'd be happy to help with that. Let me think about it for you.",
         },
@@ -169,7 +205,7 @@ function AiBox() {
           {/* Messages */}
           <div className="mx-auto max-w-3xl space-y-6 sm:space-y-8">
             {messages.map((message, index) => {
-              const isAI = message.role === "AI";
+              const isAI = message.role === "assistant";
 
               return (
                 <div
@@ -203,10 +239,6 @@ function AiBox() {
                       }`}
                     >
                       <span>{isAI ? "AI Assistant" : "You"}</span>
-
-                      <span>•</span>
-
-                      <span>Just now</span>
                     </div>
 
                     <div

@@ -12,6 +12,7 @@ export interface AppStateSlice {
   products_id: number[];
   cart_items_id: number[];
   wishlist_items_id: number[];
+  
 }
 
 const initialState: AppStateSlice = {

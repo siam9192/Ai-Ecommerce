@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
 import ProductCard from "../ui/product-card";
-import { productService } from "@/api-services/products.api.services";
 import AppStatePageTracker from "@/components/shared/app-state-page-tracker";
+import { getFeaturedProducts } from "@/api-services/products.api.services";
 
 async function FeaturedProducts() {
-  const res = await productService.getFeaturedProducts();
+  const res = await getFeaturedProducts();
   const products = res.data;
 
   return (
