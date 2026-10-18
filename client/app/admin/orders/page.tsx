@@ -1,8 +1,13 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getOrders, type Order } from "@/api-services/order.api.services";
 import AppStatePageTracker from "@/components/shared/app-state-page-tracker";
 import { FiArrowLeft, FiPackage, FiSearch, FiTruck } from "react-icons/fi";
 import { getOrdersOverview } from "@/api-services/overview.api.services";
+import type { OrdersOverview } from "@/types/overview.type";
+import { useAppSelector } from "@/redux/hooks";
 
 const statusStyles: Record<string, string> = {
   pending: "bg-amber-100 text-amber-700",
@@ -17,21 +22,55 @@ function formatMoney(value: number) {
     maximumFractionDigits: 2,
   }).format(value);
 }
-export default async function AdminOrdersPage() {
-  const orders_response = await getOrders();
-  const orders = orders_response.success ? orders_response.data : [];
+const emptyOverview: OrdersOverview = {
+  total_orders: 0,
+  pending_orders: 0,
+  completed_orders: 0,
+  cancelled_orders: 0,
+  total_revenue: 0,
+};
 
-  const orders_overview_response = await getOrdersOverview();
+export default function AdminOrdersPage() {
+  const refreshToggle = useAppSelector(
+    (state) => state.appState.state_update_toggle,
+  );
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders_overview, setOrdersOverview] = useState(emptyOverview);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const orders_overview = orders_overview_response.success
-    ? orders_overview_response.data
-    : {
-        total_orders: 0,
-        pending_orders: 0,
-        completed_orders: 0,
-        cancelled_orders: 0,
-        total_revenue: 0,
-      };
+  useEffect(() => {
+    let isCurrent = true;
+
+    const loadOrders = async () => {
+      setLoading(true);
+      try {
+        const [ordersResponse, overviewResponse] = await Promise.all([
+          getOrders(),
+          getOrdersOverview(),
+        ]);
+        if (!ordersResponse.success || !overviewResponse.success) {
+          throw new Error("Orders dashboard data request failed.");
+        }
+        if (!isCurrent) return;
+        setOrders(ordersResponse.data);
+        setOrdersOverview(overviewResponse.data);
+        setError("");
+      } catch (requestError) {
+        console.error("Failed to load admin orders:", requestError);
+        if (isCurrent) {
+          setError("Order data could not be refreshed. Please try again.");
+        }
+      } finally {
+        if (isCurrent) setLoading(false);
+      }
+    };
+
+    void loadOrders();
+    return () => {
+      isCurrent = false;
+    };
+  }, [refreshToggle]);
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-6 lg:px-6">
@@ -39,6 +78,14 @@ export default async function AdminOrdersPage() {
         page="orders"
         ids={orders.map((order: Order) => order.id)}
       />
+      {error && (
+        <p
+          className="mx-auto mb-4 max-w-[1400px] rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
 
       <div className="mx-auto max-w-[1400px]">
         {/* Header */}
@@ -203,7 +250,16 @@ export default async function AdminOrdersPage() {
                   </tr>
                 ))}
 
-                {orders.length === 0 && (
+                {loading && orders.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-5 py-10 text-center text-sm text-slate-500"
+                    >
+                      Loading orders...
+                    </td>
+                  </tr>
+                ) : orders.length === 0 ? (
                   <tr>
                     <td
                       colSpan={7}
@@ -212,7 +268,7 @@ export default async function AdminOrdersPage() {
                       No orders found.
                     </td>
                   </tr>
-                )}
+                ) : null}
               </tbody>
             </table>
           </div>

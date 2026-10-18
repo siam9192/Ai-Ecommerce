@@ -1,7 +1,9 @@
 import Link from "next/link";
-import ProductDetailsClient from "@/components/sections/product-details-client";
-import { productService } from "@/api-services/products.api.services";
+import ProductDetailsClient from "@/components/sections/product-details-client"
 import { FiArrowLeft } from "react-icons/fi";
+import { getProductBySlug } from "@/api-services/products.api.services";
+import { getProductReviews } from "@/api-services/reviews.api.services";
+import type { ProductReview } from "@/types/review.type";
 
 interface ProductDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -12,7 +14,7 @@ export default async function ProductDetailsPage({
 }: ProductDetailsPageProps) {
   const { id } = await params;
 
-  const response = await productService.getProductBySlug(id);
+  const response = await getProductBySlug(id);
   const product = response.success ? response.data : undefined;
 
   if (!product) {
@@ -43,6 +45,24 @@ export default async function ProductDetailsPage({
     );
   }
 
+  let reviews: ProductReview[] = [];
+  let reviewsUnavailable = false;
+  try {
+    const reviewResponse = await getProductReviews(product.id);
+    if (reviewResponse.success) {
+      reviews = reviewResponse.data;
+    } else {
+      reviewsUnavailable = true;
+    }
+  } catch {
+    reviewsUnavailable = true;
+  }
+  const productRating =
+    reviews.length > 0
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) /
+        reviews.length
+      : 0;
+
   // Structured data for SEO (JSON-LD)
   const structuredData = {
     "@context": "https://schema.org",
@@ -60,11 +80,13 @@ export default async function ProductDetailsPage({
       priceCurrency: "USD",
       availability: product.available_stock > 0 ? "InStock" : "OutOfStock",
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: product.rating,
-      reviewCount: product.reviews?.length || 0,
-    },
+    ...(reviews.length > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: productRating,
+        reviewCount: reviews.length,
+      },
+    }),
   };
 
   return (
@@ -76,7 +98,12 @@ export default async function ProductDetailsPage({
       />
 
       {/* Product Details Client Component */}
-      <ProductDetailsClient product={product} />
+      <ProductDetailsClient
+        product={product}
+        reviews={reviews}
+        productRating={productRating}
+        reviewsUnavailable={reviewsUnavailable}
+      />
     </>
   );
 }

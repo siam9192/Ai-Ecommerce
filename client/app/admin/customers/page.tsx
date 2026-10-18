@@ -1,17 +1,54 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getUsers } from "@/api-services/user.api.services";
 import AppStatePageTracker from "@/components/shared/app-state-page-tracker";
-import { FiArrowLeft, FiSearch, FiUser } from "react-icons/fi";
+import { FiArrowLeft, FiUser } from "react-icons/fi";
+import type { User } from "@/types/user.type";
+import { useAppSelector } from "@/redux/hooks";
 
 const statusStyles: Record<string, string> = {
   active: "bg-emerald-100 text-emerald-700",
   blocked: "bg-red-100 text-red-700",
 };
 
-export default async function AdminCustomersPage() {
-  const response = await getUsers();
+export default function AdminCustomersPage() {
+  const refreshToggle = useAppSelector(
+    (state) => state.appState.state_update_toggle,
+  );
+  const [customers, setCustomers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const customers = response.data;
+  useEffect(() => {
+    let isCurrent = true;
+
+    const loadCustomers = async () => {
+      setLoading(true);
+      try {
+        const response = await getUsers();
+        if (!response.success) {
+          throw new Error("Customers request failed.");
+        }
+        if (!isCurrent) return;
+        setCustomers(response.data);
+        setError("");
+      } catch (requestError) {
+        console.error("Failed to load admin customers:", requestError);
+        if (isCurrent) {
+          setError("Customer data could not be refreshed. Please try again.");
+        }
+      } finally {
+        if (isCurrent) setLoading(false);
+      }
+    };
+
+    void loadCustomers();
+    return () => {
+      isCurrent = false;
+    };
+  }, [refreshToggle]);
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-6 lg:px-6">
@@ -19,6 +56,14 @@ export default async function AdminCustomersPage() {
         page="customers"
         ids={customers.map((customer) => customer.id)}
       />
+      {error && (
+        <p
+          className="mx-auto mb-4 max-w-[1400px] rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
       <div className="mx-auto max-w-[1400px]">
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -87,6 +132,16 @@ export default async function AdminCustomersPage() {
                     </td>
                   </tr>
                 ))}
+                {customers.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-5 py-10 text-center text-sm text-slate-500"
+                    >
+                      {loading ? "Loading customers..." : "No customers found."}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

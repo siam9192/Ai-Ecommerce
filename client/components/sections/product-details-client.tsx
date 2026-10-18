@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
 import Link from "next/link";
 import ProductImageGallery from "@/components/sections/product-image-gallery";
 import ReviewsSection from "@/components/sections/reviews-section";
@@ -13,29 +12,41 @@ import {
   FiCheck,
 } from "react-icons/fi";
 import { addToCart } from "@/redux/features/cart-slice";
+import {
+  addAppStateId,
+  incrementCartItemCount,
+} from "@/redux/features/appState-slice";
+import { useAppDispatch } from "@/redux/hooks";
 import { addItem } from "@/api-services/cart.api.services";
 import {
   addItem as addWishlistItem,
   removeItem as removeWishlistItem,
 } from "@/api-services/wishlist.api.services";
 import type { Product } from "@/types/product.type";
+import type { ProductReview } from "@/types/review.type";
 
 interface ProductDetailsClientProps {
   product: Product;
+  reviews: ProductReview[];
+  productRating: number;
+  reviewsUnavailable: boolean;
 }
 
 export default function ProductDetailsClient({
   product,
+  reviews,
+  productRating,
+  reviewsUnavailable,
 }: ProductDetailsClientProps) {
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [cartError, setCartError] = useState("");
-  const [isInCart, setIsInCart] = useState(product.cart_listed);
+  const [isInCart, setIsInCart] = useState(product.cart_item_listed);
   const [isWishlisted, setIsWishlisted] = useState(product.wish_listed);
   const [isUpdatingWishlist, setIsUpdatingWishlist] = useState(false);
   const [wishlistError, setWishlistError] = useState("");
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const handleAddToCart = async () => {
     if (!hasStock || isAddingToCart) return;
@@ -44,7 +55,14 @@ export default function ProductDetailsClient({
     setCartError("");
 
     try {
-      await addItem({ product_id: product.id, quantity });
+      const response = await addItem({ product_id: product.id, quantity });
+      dispatch(
+        addAppStateId({
+          collection: "cart_item_ids",
+          id: response.data.id,
+        }),
+      );
+      dispatch(incrementCartItemCount(quantity));
       dispatch(
         addToCart({
           id: product.id,
@@ -81,7 +99,13 @@ export default function ProductDetailsClient({
         await removeWishlistItem({ product_id: product.id });
         setIsWishlisted(false);
       } else {
-        await addWishlistItem({ product_id: product.id });
+        const response = await addWishlistItem({ product_id: product.id });
+        dispatch(
+          addAppStateId({
+            collection: "wishlist_item_ids",
+            id: response.data.id,
+          }),
+        );
         setIsWishlisted(true);
       }
     } catch {
@@ -140,7 +164,7 @@ export default function ProductDetailsClient({
                       key={i}
                       size={18}
                       className={
-                        i < Math.round(product.rating)
+                        i < Math.round(productRating)
                           ? "fill-yellow-400 text-yellow-400"
                           : "text-muted-foreground"
                       }
@@ -148,12 +172,15 @@ export default function ProductDetailsClient({
                   ))}
                 </div>
                 <span className="font-semibold text-foreground">
-                  {product.rating}
+                  {productRating.toFixed(1)}
                 </span>
               </div>
-              <span className="text-sm text-muted-foreground">
-                ({product.reviews?.length || 0} reviews)
-              </span>
+              <a
+                href="#reviews"
+                className="text-sm text-muted-foreground transition hover:text-primary"
+              >
+                ({reviews.length} reviews)
+              </a>
             </div>
 
             {/* Price */}
@@ -313,8 +340,9 @@ export default function ProductDetailsClient({
 
         {/* Reviews Section */}
         <ReviewsSection
-          reviews={product.reviews}
-          productRating={product.rating}
+          reviews={reviews}
+          productRating={productRating}
+          unavailable={reviewsUnavailable}
         />
       </div>
     </div>

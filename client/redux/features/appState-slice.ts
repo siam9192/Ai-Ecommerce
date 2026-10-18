@@ -1,31 +1,48 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
+import type { ProductResponse } from "@/types/ai.type";
 
 export interface AppStateSlice {
   isAiOpen: boolean;
-  featured_products_id: number[];
-  shop_products_id: number[];
-  ai_search_products_id: number[];
-  customer_orders_id: number[];
-  customers_id: number[];
-  orders_id: number[];
-  products_id: number[];
-  cart_items_id: number[];
-  wishlist_items_id: number[];
-  
+  state_update_toggle: boolean;
+  ai_search_results: ProductResponse[];
+  featured_product_ids: number[];
+  shop_product_ids: number[];
+  ai_search_product_ids: number[];
+  customer_order_ids: number[];
+  customer_ids: number[];
+  order_ids: number[];
+  product_ids: number[];
+  cart_item_ids: number[];
+  cart_item_count: number;
+  wishlist_item_ids: number[];
 }
+
+export type AppStateIdCollection =
+  | "featured_product_ids"
+  | "shop_product_ids"
+  | "ai_search_product_ids"
+  | "customer_order_ids"
+  | "customer_ids"
+  | "order_ids"
+  | "product_ids"
+  | "cart_item_ids"
+  | "wishlist_item_ids";
 
 const initialState: AppStateSlice = {
   isAiOpen: false,
-  featured_products_id: [],
-  shop_products_id: [],
-  ai_search_products_id: [],
-  customer_orders_id: [],
-  customers_id: [],
-  orders_id: [],
-  products_id: [],
-  cart_items_id: [],
-  wishlist_items_id: [],
+  state_update_toggle: false,
+  ai_search_results: [],
+  featured_product_ids: [],
+  shop_product_ids: [],
+  ai_search_product_ids: [],
+  customer_order_ids: [],
+  customer_ids: [],
+  order_ids: [],
+  product_ids: [],
+  cart_item_ids: [],
+  cart_item_count: 0,
+  wishlist_item_ids: [],
 };
 
 export const appStateSlice = createSlice({
@@ -35,65 +52,114 @@ export const appStateSlice = createSlice({
     setAiOpen: (state, action: PayloadAction<boolean>) => {
       state.isAiOpen = action.payload;
     },
+    toggleStateUpdate: (state) => {
+      state.state_update_toggle = !state.state_update_toggle;
+    },
+    setAiSearchResults: (state, action: PayloadAction<ProductResponse[]>) => {
+      state.ai_search_results = action.payload;
+      state.ai_search_product_ids = action.payload.map((product) => product.id);
+    },
+    addAppStateId: (
+      state,
+      action: PayloadAction<{ collection: AppStateIdCollection; id: number }>,
+    ) => {
+      const ids = state[action.payload.collection];
+      if (!ids.includes(action.payload.id)) {
+        ids.push(action.payload.id);
+      }
+    },
+    removeAppStateId: (
+      state,
+      action: PayloadAction<{ collection: AppStateIdCollection; id: number }>,
+    ) => {
+      state[action.payload.collection] = state[
+        action.payload.collection
+      ].filter((id) => id !== action.payload.id);
+    },
+    clearAppStateCollection: (
+      state,
+      action: PayloadAction<AppStateIdCollection>,
+    ) => {
+      state[action.payload] = [];
+      if (action.payload === "cart_item_ids") {
+        state.cart_item_count = 0;
+      }
+    },
+    setCartItemCount: (state, action: PayloadAction<number>) => {
+      state.cart_item_count = Math.max(0, action.payload);
+    },
+    incrementCartItemCount: (state, action: PayloadAction<number>) => {
+      state.cart_item_count = Math.max(
+        0,
+        state.cart_item_count + action.payload,
+      );
+    },
     setFeaturedProductsIds: (state, action: PayloadAction<number[]>) => {
-      state.featured_products_id = action.payload;
+      state.featured_product_ids = action.payload;
     },
     clearFeaturedProductsIds: (state) => {
-      state.featured_products_id = [];
+      state.featured_product_ids = [];
     },
     setShopProductsIds: (state, action: PayloadAction<number[]>) => {
-      state.shop_products_id = action.payload;
+      state.shop_product_ids = action.payload;
     },
     clearShopProductsIds: (state) => {
-      state.shop_products_id = [];
+      state.shop_product_ids = [];
     },
     setAiSearchProductsIds: (state, action: PayloadAction<number[]>) => {
-      state.ai_search_products_id = action.payload;
+      state.ai_search_product_ids = action.payload;
     },
     clearAiSearchProductsIds: (state) => {
-      state.ai_search_products_id = [];
+      state.ai_search_product_ids = [];
     },
     setCustomerOrdersIds: (state, action: PayloadAction<number[]>) => {
-      state.customer_orders_id = action.payload;
+      state.customer_order_ids = action.payload;
     },
     clearCustomerOrdersIds: (state) => {
-      state.customer_orders_id = [];
+      state.customer_order_ids = [];
     },
     setCustomersIds: (state, action: PayloadAction<number[]>) => {
-      state.customers_id = action.payload;
+      state.customer_ids = action.payload;
     },
     clearCustomersIds: (state) => {
-      state.customers_id = [];
+      state.customer_ids = [];
     },
     setOrdersIds: (state, action: PayloadAction<number[]>) => {
-      state.orders_id = action.payload;
+      state.order_ids = action.payload;
     },
     clearOrdersIds: (state) => {
-      state.orders_id = [];
+      state.order_ids = [];
     },
     setProductsIds: (state, action: PayloadAction<number[]>) => {
-      state.products_id = action.payload;
+      state.product_ids = action.payload;
     },
     clearProductsIds: (state) => {
-      state.products_id = [];
+      state.product_ids = [];
     },
     setCartItemsIds: (state, action: PayloadAction<number[]>) => {
-      state.cart_items_id = action.payload;
+      state.cart_item_ids = action.payload;
     },
     clearCartItemsIds: (state) => {
-      state.cart_items_id = [];
+      state.cart_item_ids = [];
     },
     setWishlistItemsIds: (state, action: PayloadAction<number[]>) => {
-      state.wishlist_items_id = action.payload;
+      state.wishlist_item_ids = action.payload;
     },
     clearWishlistItemsIds: (state) => {
-      state.wishlist_items_id = [];
+      state.wishlist_item_ids = [];
     },
   },
 });
 
 export const {
   setAiOpen,
+  toggleStateUpdate,
+  setAiSearchResults,
+  addAppStateId,
+  removeAppStateId,
+  clearAppStateCollection,
+  setCartItemCount,
+  incrementCartItemCount,
   setFeaturedProductsIds,
   clearFeaturedProductsIds,
   setShopProductsIds,

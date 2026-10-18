@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import AppStatePageTracker from "@/components/shared/app-state-page-tracker";
@@ -9,10 +12,45 @@ import {
   FiTrash2,
 } from "react-icons/fi";
 import { searchProducts } from "@/api-services/products.api.services";
+import type { Product } from "@/types/product.type";
+import { useAppSelector } from "@/redux/hooks";
 
-export default async function AdminProductsPage() {
-  const response = await searchProducts();
-  const products = response.success ? response.data : [];
+export default function AdminProductsPage() {
+  const refreshToggle = useAppSelector(
+    (state) => state.appState.state_update_toggle,
+  );
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    const loadProducts = async () => {
+      setLoading(true);
+      try {
+        const response = await searchProducts();
+        if (!response.success) {
+          throw new Error("Products request failed.");
+        }
+        if (!isCurrent) return;
+        setProducts(response.data);
+        setError("");
+      } catch (requestError) {
+        console.error("Failed to load admin products:", requestError);
+        if (isCurrent) {
+          setError("Product data could not be refreshed. Please try again.");
+        }
+      } finally {
+        if (isCurrent) setLoading(false);
+      }
+    };
+
+    void loadProducts();
+    return () => {
+      isCurrent = false;
+    };
+  }, [refreshToggle]);
 
   return (
     <main className="min-h-screen bg-slate-100 px-4 py-6 lg:px-6">
@@ -20,6 +58,14 @@ export default async function AdminProductsPage() {
         page="products"
         ids={products.map((product) => product.id)}
       />
+      {error && (
+        <p
+          className="mx-auto mb-4 max-w-[1400px] rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
 
       <div className="mx-auto max-w-[1400px]">
         {/* Header */}
@@ -47,13 +93,13 @@ export default async function AdminProductsPage() {
               />
             </div>
 
-            <button
-              type="button"
+            <Link
+              href="/admin/products/new"
               className="inline-flex items-center gap-2 rounded-2xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/20 transition hover:bg-primary-hover"
             >
               <FiPlus size={16} />
               Add product
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -154,7 +200,9 @@ export default async function AdminProductsPage() {
           {/* Empty State */}
           {products.length === 0 && (
             <div className="px-6 py-12 text-center">
-              <p className="text-sm text-slate-500">No products found.</p>
+              <p className="text-sm text-slate-500">
+                {loading ? "Loading products..." : "No products found."}
+              </p>
             </div>
           )}
         </div>

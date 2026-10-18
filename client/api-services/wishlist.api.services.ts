@@ -4,14 +4,17 @@ import { axios_instance } from "@/axios";
 import type {
   WishlistItemPayload,
   WishlistItemResponse,
+  WishlistItemWithProductResponse,
 } from "@/types/wishlist.type";
 import type { Response as ApiResponse } from "@/types/response";
 
 export async function getWishlist(): Promise<
-  ApiResponse<WishlistItemResponse[]>
+  ApiResponse<WishlistItemWithProductResponse[]>
 > {
   const response =
-    await axios_instance.get<ApiResponse<WishlistItemResponse[]>>("/wishlist");
+    await axios_instance.get<ApiResponse<WishlistItemWithProductResponse[]>>(
+      "/wishlist",
+    );
   return response.data;
 }
 

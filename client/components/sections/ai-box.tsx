@@ -1,5 +1,7 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { BiSolidBot, BiUser } from "react-icons/bi";
 import { RiGeminiLine, RiSendPlane2Fill } from "react-icons/ri";
 import {
@@ -9,15 +11,68 @@ import {
   IoMicOutline,
 } from "react-icons/io5";
 import { HiSparkles } from "react-icons/hi";
-import { useDispatch, useSelector } from "react-redux";
-import { setAiOpen } from "@/redux/features/appState-slice";
+import {
+  setAiOpen,
+  setAiSearchResults,
+  toggleStateUpdate,
+} from "@/redux/features/appState-slice";
+import { aiAsk, type ChatMessage } from "@/api-services/ai.api.services";
+import { logout } from "@/api-services/auth.api.services";
+import type { AIActions, ProductResponse } from "@/types/ai.type";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
-interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
+interface DisplayMessage extends ChatMessage {
+  products?: ProductSummary[];
 }
 
-const initialMessages: ChatMessage[] = [
+type ProductSummary = Pick<
+  ProductResponse,
+  "id" | "name" | "slug" | "main_price" | "available_stock"
+>;
+
+interface SpeechRecognitionResultEvent extends Event {
+  results: ArrayLike<ArrayLike<{ transcript: string }>>;
+}
+
+interface SpeechRecognitionLike {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+function isProductSummary(value: unknown): value is ProductSummary {
+  if (typeof value !== "object" || value === null) return false;
+  const product = value as Record<string, unknown>;
+  return (
+    typeof product.id === "number" &&
+    typeof product.name === "string" &&
+    typeof product.slug === "string" &&
+    typeof product.main_price === "number" &&
+    typeof product.available_stock === "number"
+  );
+}
+
+function isDisplayMessage(value: unknown): value is DisplayMessage {
+  if (typeof value !== "object" || value === null) return false;
+  const message = value as Record<string, unknown>;
+  return (
+    (message.role === "user" || message.role === "assistant") &&
+    typeof message.content === "string" &&
+    (message.products === undefined ||
+      (Array.isArray(message.products) &&
+        message.products.every(isProductSummary)))
+  );
+}
+
+const initialMessages: DisplayMessage[] = [
   {
     role: "assistant",
     content: "Hello! 👋 I'm your AI Assistant. How can I help you today?",
@@ -33,20 +88,42 @@ const suggestions = [
 function AiBox() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [hasLoadedHistory, setHasLoadedHistory] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [copiedMessage, setCopiedMessage] = useState<number | null>(null);
+  const [uiError, setUiError] = useState("");
 
   const bottomRef = useRef<HTMLDivElement>(null);
-  const dispatch = useDispatch()
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const { refetch: refetchCurrentUser } = useCurrentUser();
+
+  const clientState = useAppSelector((state) => state.appState);
+
+  useEffect(
+    () => () => {
+      const recognition = recognitionRef.current;
+      if (!recognition) return;
+
+      recognition.onresult = null;
+      recognition.onerror = null;
+      recognition.onend = null;
+      recognition.stop();
+    },
+    [],
+  );
+
   // Load chat history
   useEffect(() => {
     try {
       const storedHistory = sessionStorage.getItem("chat_history");
 
       if (storedHistory) {
-        const history: ChatMessage[] = JSON.parse(storedHistory);
+        const history: unknown = JSON.parse(storedHistory);
 
-        if (Array.isArray(history) && history.length > 0) {
+        if (Array.isArray(history) && history.length > 0 && history.every(isDisplayMessage)) {
           setMessages(history);
         } else {
           setMessages(initialMessages);
@@ -56,7 +133,11 @@ function AiBox() {
       }
     } catch (error) {
       console.error("Failed to load chat history:", error);
-      sessionStorage.removeItem("chat_history");
+      try {
+        sessionStorage.removeItem("chat_history");
+      } catch (storageError) {
+        console.error("Failed to clear invalid chat history:", storageError);
+      }
       setMessages(initialMessages);
     } finally {
       setHasLoadedHistory(true);
@@ -67,7 +148,12 @@ function AiBox() {
   useEffect(() => {
     if (!hasLoadedHistory || messages.length === 0) return;
 
-    sessionStorage.setItem("chat_history", JSON.stringify(messages));
+    try {
+      sessionStorage.setItem("chat_history", JSON.stringify(messages));
+    } catch (error) {
+      console.error("Failed to save chat history:", error);
+      setUiError("Chat history could not be saved in this browser.");
+    }
   }, [messages, hasLoadedHistory]);
 
   // Scroll to bottom
@@ -79,36 +165,191 @@ function AiBox() {
       block: "end",
     });
   }, [messages, hasLoadedHistory]);
-  const handleSend = () => {
-    const text = input.trim();
 
+  const processActions = async (actions: AIActions) => {
+    if (actions.client_logout) {
+      await logout();
+      await refetchCurrentUser();
+    }
+
+    const route = actions.client_navigate_to;
+    let target: URL | undefined;
+    if (route) {
+      target = new URL(route, window.location.origin);
+    }
+
+    const searchResults = actions.product_ai_search_results ?? [];
+    const isAiSearchRoute =
+      target?.origin === window.location.origin &&
+      target.pathname.replace(/\/+$/, "") === "/ai-search";
+
+    if (searchResults.length > 0 || isAiSearchRoute) {
+      dispatch(setAiSearchResults(searchResults));
+    }
+
+    if (target?.origin === window.location.origin) {
+      router.push(`${target.pathname}${target.search}${target.hash}`);
+    } else if (searchResults.length > 0) {
+      router.push("/ai-search");
+    }
+
+    if (
+      actions.cart_update ||
+      actions.order_update ||
+      actions.product_update ||
+      actions.user_update
+    ) {
+      dispatch(toggleStateUpdate());
+    }
+
+  
+  };
+
+  const sendMessage = async (
+    messageText: string,
+    conversation: DisplayMessage[] = messages,
+  ) => {
+    const text = messageText.trim();
     if (!text || isTyping) return;
 
-    // Add user message
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "user",
-        content: text,
-      },
-    ]);
-
+    setMessages((previous) => [...previous, { role: "user", content: text }]);
     setInput("");
+    setUiError("");
     setIsTyping(true);
 
-    // Temporary AI response
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
+    try {
+      const response = await aiAsk({
+        message: text,
+        chat_history: conversation
+          .filter((message) => message.content !== initialMessages[0].content)
+          .map(({ role, content }) => ({ role, content })),
+        client_state: {
+          current_path: window.location.pathname,
+          featured_product_ids: clientState.featured_product_ids,
+          shop_product_ids: clientState.shop_product_ids,
+          ai_search_product_ids: clientState.ai_search_product_ids,
+          customer_order_ids: clientState.customer_order_ids,
+          customer_ids: clientState.customer_ids,
+          order_ids: clientState.order_ids,
+          product_ids: clientState.product_ids,
+          cart_item_ids: clientState.cart_item_ids,
+          wishlist_item_ids: clientState.wishlist_item_ids,
+        },
+      });
+      await processActions(response.actions);
+      setMessages((previous) => [
+        ...previous,
+        {
+          role: "assistant",
+          content: response.message,
+          products: (response.actions.product_ai_search_results ?? []).map(
+            ({ id, name, slug, main_price, available_stock }) => ({
+              id,
+              name,
+              slug,
+              main_price,
+              available_stock,
+            }),
+          ),
+        },
+      ]);
+    } catch (error) {
+      console.error("AI request failed:", error);
+      setMessages((previous) => [
+        ...previous,
         {
           role: "assistant",
           content:
-            "I'd be happy to help with that. Let me think about it for you.",
+            "I couldn't complete that request. Please check your connection and try again.",
         },
       ]);
-
+    } finally {
       setIsTyping(false);
-    }, 1000);
+    }
+  };
+
+  const handleSend = () => void sendMessage(input);
+
+  const handleRegenerate = (messageIndex: number) => {
+    let userIndex = messageIndex - 1;
+    while (userIndex >= 0 && messages[userIndex].role !== "user") {
+      userIndex -= 1;
+    }
+    if (userIndex < 0) return;
+
+    const retryText = messages[userIndex].content;
+    const precedingMessages = messages.slice(0, userIndex);
+    setMessages(precedingMessages);
+    void sendMessage(retryText, precedingMessages);
+  };
+
+  const handleNewConversation = () => {
+    if (isTyping) return;
+    setMessages(initialMessages);
+    setInput("");
+    setUiError("");
+    try {
+      sessionStorage.removeItem("chat_history");
+    } catch (error) {
+      console.error("Failed to clear chat history:", error);
+      setUiError("The conversation was reset, but saved history could not be cleared.");
+    }
+  };
+
+  const handleCopy = async (content: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedMessage(index);
+      window.setTimeout(() => setCopiedMessage(null), 1500);
+    } catch (error) {
+      console.error("Failed to copy AI response:", error);
+      setUiError("Could not copy the response to the clipboard.");
+    }
+  };
+
+  const handleVoiceInput = () => {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+      return;
+    }
+
+    const speechWindow = window as Window & {
+      SpeechRecognition?: SpeechRecognitionConstructor;
+      webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    };
+    const SpeechRecognition =
+      speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setUiError("Voice input is not supported by this browser.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = navigator.language;
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onresult = (event) => {
+      const transcript = event.results[0]?.[0]?.transcript;
+      if (transcript) {
+        setInput((previous) => `${previous}${previous ? " " : ""}${transcript}`);
+      }
+    };
+    recognition.onerror = () => {
+      setUiError("Voice input failed. Please check microphone permissions and try again.");
+      setIsListening(false);
+    };
+    recognition.onend = () => setIsListening(false);
+    recognitionRef.current = recognition;
+    setUiError("");
+
+    try {
+      recognition.start();
+      setIsListening(true);
+    } catch (error) {
+      console.error("Failed to start voice input:", error);
+      setUiError("Could not start voice input.");
+    }
   };
 
   return (
@@ -158,8 +399,11 @@ function AiBox() {
 
           <div className="relative flex items-center gap-1">
             <button
+              onClick={handleNewConversation}
+              disabled={isTyping}
               className="rounded-xl p-2 text-gray-600 transition-all hover:bg-white/[0.04] hover:text-gray-300 sm:p-2.5"
               title="New conversation"
+              aria-label="Start a new conversation"
             >
               <IoRefresh size={16} className="sm:size-[18px]" />
             </button>
@@ -177,8 +421,18 @@ function AiBox() {
         {/* ================= CHAT ================= */}
 
         <main className="flex-1 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 sm:px-7 sm:py-5">
+          {uiError && (
+            <p
+              className="mx-auto mb-4 max-w-3xl rounded-xl bg-red-500/10 px-4 py-2 text-xs text-red-300"
+              role="alert"
+            >
+              {uiError}
+            </p>
+          )}
+
           {/* Welcome */}
-          {messages.length === 1 && (
+          {messages.length === 1 &&
+            messages[0]?.content === initialMessages[0].content && (
             <div className="flex flex-col items-center justify-center py-8 text-center sm:py-10">
               <div className="relative mb-5 sm:mb-6">
                 <div className="absolute inset-0 rounded-[26px] bg-primary/20 blur-2xl" />
@@ -251,14 +505,49 @@ function AiBox() {
                       {message.content}
                     </div>
 
+                    {message.products && message.products.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {message.products.map((product) => (
+                          <Link
+                            key={product.id}
+                            href={`/products/${product.id}`}
+                            className="block rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left transition hover:border-primary/40 hover:bg-white/[0.06]"
+                          >
+                            <span className="block text-sm font-medium text-white">
+                              {product.name}
+                            </span>
+                            <span className="mt-1 block text-xs text-gray-400">
+                              ${product.main_price.toFixed(2)}
+                              {product.available_stock <= 0 && " · Out of stock"}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+
                     {/* Actions */}
                     {isAI && (
-                      <div className="mt-2 flex gap-1 opacity-0 transition-all group-hover:opacity-100">
-                        <button className="rounded-lg p-1.5 text-gray-700 hover:bg-white/[0.04] hover:text-gray-400">
-                          <IoCopyOutline size={14} />
+                      <div className="mt-2 flex gap-1 opacity-0 transition-all group-hover:opacity-100 group-focus-within:opacity-100">
+                        <button
+                          onClick={() => void handleCopy(message.content, index)}
+                          className="rounded-lg p-1.5 text-gray-700 hover:bg-white/[0.04] hover:text-gray-400"
+                          title={copiedMessage === index ? "Copied" : "Copy response"}
+                          aria-label={copiedMessage === index ? "Copied response" : "Copy response"}
+                        >
+                          {copiedMessage === index ? (
+                            "Copied"
+                          ) : (
+                            <IoCopyOutline size={14} />
+                          )}
                         </button>
 
-                        <button className="rounded-lg p-1.5 text-gray-700 hover:bg-white/[0.04] hover:text-gray-400">
+                        <button
+                          onClick={() => handleRegenerate(index)}
+                          disabled={isTyping}
+                          className="rounded-lg p-1.5 text-gray-700 hover:bg-white/[0.04] hover:text-gray-400 disabled:opacity-40"
+                          title="Regenerate response"
+                          aria-label="Regenerate response"
+                        >
                           <IoRefresh size={14} />
                         </button>
                       </div>
@@ -311,7 +600,7 @@ function AiBox() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
+                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                     e.preventDefault();
                     handleSend();
                   }
@@ -323,7 +612,15 @@ function AiBox() {
 
               <div className="flex items-center justify-between gap-2 px-1 pb-1 sm:px-2">
                 <div className="flex min-w-0 items-center gap-2">
-                  <button className="rounded-xl p-2 text-gray-600 transition hover:bg-white/[0.05] hover:text-gray-300">
+                  <button
+                    onClick={handleVoiceInput}
+                    disabled={isTyping}
+                    title={isListening ? "Stop voice input" : "Use voice input"}
+                    aria-label={isListening ? "Stop voice input" : "Use voice input"}
+                    className={`rounded-xl p-2 transition hover:bg-white/[0.05] hover:text-gray-300 disabled:opacity-40 ${
+                      isListening ? "text-primary" : "text-gray-600"
+                    }`}
+                  >
                     <IoMicOutline size={16} className="sm:size-[18px]" />
                   </button>
 
@@ -334,7 +631,7 @@ function AiBox() {
 
                 <button
                   onClick={handleSend}
-                  disabled={!input.trim()}
+                  disabled={!input.trim() || isTyping}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/20 transition-all hover:scale-105 hover:shadow-primary/30 disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:scale-100"
                 >
                   <RiSendPlane2Fill size={17} />

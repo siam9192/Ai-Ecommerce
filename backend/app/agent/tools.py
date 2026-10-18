@@ -4,20 +4,25 @@ from decimal import Decimal
 from enum import Enum
 from pathlib import Path
 from typing import Any
-from langchain.tools import tool
+from langchain.tools import tool, ToolRuntime
 from pydantic import BaseModel
+from sqlalchemy.exc import NoInspectionAvailable
 from sqlalchemy.inspection import inspect
 from app.database import SessionLocal
+from app.models.users import UserRole
+from app.schemas.ai import AgentContext
 from app.schemas.cart import AddCartItemPayload, UpdateCartItemPayload
 from app.schemas.product import AddProductPayload, ToolFindProductsPayload, UpdateProductPayload
 from app.schemas.review import AddReviewPayload, UpdateReviewPayload
 from app.schemas.order import ToolDirectOrderPayload, ToolFilterOrderPayload
 from app.schemas.wishlist import AddWishlistItemPayload, RemoveWishlistItemPayload
+from app.schemas.users import ToolFindUsersPayload, ToolUpdateUserPayload
 from app.tools.cart import CartTools
 from app.tools.product import ProductTool
 from app.tools.review import ReviewTools
 from app.tools.wishlist import WishlistTools
 from app.tools.order import OrderTools
+from app.tools.user import UserTools
 from app.schemas.response import AIFinalResponse
 
 
@@ -30,8 +35,10 @@ def _json_value(value: Any) -> Any:
 
 
 def _serialize(value: Any) -> Any:
-    if value is None or isinstance(value, (str, int, float, bool)):
-        return value
+    if value is None or isinstance(
+        value, (str, int, float, bool, date, datetime, Decimal, Enum)
+    ):
+        return _json_value(value)
     if isinstance(value, BaseModel):
         return _serialize(value.model_dump(mode="json"))
     if isinstance(value, dict):
@@ -42,7 +49,7 @@ def _serialize(value: Any) -> Any:
         return [_serialize(item) for item in value]
     try:
         mapper = inspect(value).mapper
-    except (TypeError, AttributeError):
+    except (NoInspectionAvailable, TypeError, AttributeError):
         return _json_value(value)
     return {
         column.key: _json_value(getattr(value, column.key))
@@ -59,6 +66,57 @@ def _run(operation: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         raise
     finally:
         db.close()
+
+
+def _require_admin(runtime: ToolRuntime[AgentContext]) -> bool:
+    return runtime.context.user_role == UserRole.ADMIN
+
+
+def _admin_only_result() -> dict[str, Any]:
+    return {
+        "success": False,
+        "message": "Only an authenticated admin can manage customer accounts",
+        "data": None,
+    }
+
+
+@tool
+def find_users(
+    payload: ToolFindUsersPayload,
+    runtime: ToolRuntime[AgentContext],
+) -> Any:
+    """Search customer accounts by name, email, or status. Admin only."""
+    if not _require_admin(runtime):
+        return _admin_only_result()
+    return _run(UserTools.find_users, payload)
+
+
+@tool
+def get_user(user_id: int, runtime: ToolRuntime[AgentContext]) -> Any:
+    """Get a customer's account details by ID. Admin only."""
+    if not _require_admin(runtime):
+        return _admin_only_result()
+    return _run(UserTools.get_user, user_id)
+
+
+@tool
+def update_user(
+    user_id: int,
+    payload: ToolUpdateUserPayload,
+    runtime: ToolRuntime[AgentContext],
+) -> Any:
+    """Update a customer's name, email, or active/blocked status. Admin only."""
+    if not _require_admin(runtime):
+        return _admin_only_result()
+    return _run(UserTools.update_user, user_id, payload)
+
+
+@tool
+def delete_user(user_id: int, runtime: ToolRuntime[AgentContext]) -> Any:
+    """Soft-delete a customer account. Admin only."""
+    if not _require_admin(runtime):
+        return _admin_only_result()
+    return _run(UserTools.delete_user, user_id)
 
 
 @tool
@@ -253,6 +311,10 @@ def final_response(response: AIFinalResponse) -> AIFinalResponse:
 
 
 AI_TOOLS = [
+    find_users,
+    get_user,
+    update_user,
+    delete_user,
     get_cart,
     get_cart_item,
     add_cart_item,

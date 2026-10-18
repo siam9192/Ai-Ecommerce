@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { productService } from "@/api-services/products.api.services";
 import ProductCard from "@/components/ui/product-card";
 import type { Product } from "@/types/product.type";
 import AppStatePageTracker from "@/components/shared/app-state-page-tracker";
+import { searchProducts } from "@/api-services/products.api.services";
 
 interface ShopPageProps {
   searchParams: Promise<{ search?: string | string[] }>;
@@ -19,8 +19,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   let hasError = false;
 
   try {
-    const response = await productService.searchProducts(trimmedSearch);
-    console.log(response);
+    const response = await searchProducts(trimmedSearch);
     products = response.success ? response.data : [];
     hasError = !response.success;
   } catch (e) {

@@ -44,6 +44,11 @@ class AIActions(BaseModel):
         description="Whether the cart was successfully updated."
     )
 
+    order_update: bool = Field(
+        default=False,
+        description="Whether an order was successfully created or updated."
+    )
+
     product_update: bool = Field(
         default=False,
         description="Whether a product was successfully updated."

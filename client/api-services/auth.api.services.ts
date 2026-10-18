@@ -47,3 +47,7 @@ export async function signup(
 
   return response.data;
 }
+
+export async function logout(): Promise<void> {
+  (await cookies()).delete("access_token");
+}

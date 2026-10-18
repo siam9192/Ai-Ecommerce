@@ -20,6 +20,14 @@ def get_cart(
     return CartService.get_cart(current_user.id, db)
 
 
+@router.get("/count")
+def count_cart(
+    current_user: AuthUser = Depends(auth_guard([UserRole.CUSTOMER])),
+    db: Session = Depends(get_db),
+):
+    return CartService.count_cart(current_user.id, db)
+
+
 @router.get("/items/{product_id}")
 def get_cart_item(
     product_id: int,

@@ -1,5 +1,6 @@
 "use client";
 import AiButton from "@/components/ui/ai-button";
+import AppDataRefreshListener from "@/components/shared/app-data-refresh-listener";
 import { CurrentUserProvider } from "@/providers/current-user-provider";
 import { store } from "@/redux/store";
 import React from "react";
@@ -12,6 +13,7 @@ function Provider({ children }: Props) {
     <div>
       <ReduxProvider store={store}>
         <CurrentUserProvider>
+          <AppDataRefreshListener />
           {children}
           <AiButton />
         </CurrentUserProvider>

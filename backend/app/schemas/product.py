@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Annotated, List, Optional
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -62,8 +62,8 @@ class ToolFindProductsPayload(BaseModel):
     )
     limit: Optional[int] = Field(
         default=None, ge=1, description="Filter products limit")
-    ids: Optional[list[int]] = Field(
-        default=None, ge=1, description="Products ids for filter directly")
+    ids: Optional[list[Annotated[int, Field(ge=1)]]] = Field(
+        default=None, description="Product IDs to filter directly.")
     user_id: Optional[int] = Field(
         default=None, description="An user id of requester")
 

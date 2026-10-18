@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   clear,
@@ -22,9 +22,22 @@ import {
   FiShoppingBag,
   FiTrash2,
 } from "react-icons/fi";
+import {
+  addAppStateId,
+  clearAppStateCollection,
+  incrementCartItemCount,
+  removeAppStateId,
+  setCartItemCount,
+  toggleStateUpdate,
+} from "@/redux/features/appState-slice";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 
 export default function CartPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const refreshToggle = useAppSelector(
+    (state) => state.appState.state_update_toggle,
+  );
   const [cartItems, setCartItems] = useState<
     Awaited<ReturnType<typeof getCart>>["data"]
   >([]);
@@ -38,14 +51,19 @@ export default function CartPage() {
     state: "",
   });
 
-  const loadCart = async () => {
+  const loadCart = useCallback(async () => {
     try {
       const response = await getCart();
       setCartItems(response.data);
+      dispatch(
+        setCartItemCount(
+          response.data.reduce((count, item) => count + item.quantity, 0),
+        ),
+      );
     } finally {
       setLoading(false);
     }
-  };
+  }, [dispatch]);
 
   const updateAddress = (field: keyof DeliveryAddress, value: string) => {
     setDeliveryAddress((current) => ({ ...current, [field]: value }));
@@ -74,6 +92,14 @@ export default function CartPage() {
     try {
       const response = await createOrderFromCart(deliveryAddress);
       setCartItems([]);
+      dispatch(clearAppStateCollection("cart_item_ids"));
+      dispatch(
+        addAppStateId({
+          collection: "customer_order_ids",
+          id: response.data.id,
+        }),
+      );
+      dispatch(toggleStateUpdate());
       setCheckoutOpen(false);
       router.push(`/my-orders?order=${response.data.id}`);
     } catch (requestError) {
@@ -85,7 +111,7 @@ export default function CartPage() {
 
   useEffect(() => {
     void loadCart();
-  }, []);
+  }, [loadCart, refreshToggle]);
 
   const subtotal = cartItems.reduce(
     (total, item) => total + (item.productId ?? 0) * item.quantity,
@@ -115,7 +141,7 @@ export default function CartPage() {
 
           <div className="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
             <FiShoppingBag size={16} />
-            {cartItems.length} items
+            {cartItems.reduce((count, item) => count + item.quantity, 0)} items
           </div>
         </div>
 
@@ -131,12 +157,45 @@ export default function CartPage() {
                       item={item}
                       key={item.id}
                       onQuantityChange={async (productId, quantity) => {
-                        await updateItem(productId, { quantity });
-                        await loadCart();
+                        const existingItem = cartItems.find(
+                          (cartItem) => cartItem.productId === productId,
+                        );
+                        if (!existingItem) return;
+
+                        const countDifference = quantity - existingItem.quantity;
+                        dispatch(incrementCartItemCount(countDifference));
+                        try {
+                          await updateItem(productId, { quantity });
+                          await loadCart();
+                        } catch (error) {
+                          dispatch(incrementCartItemCount(-countDifference));
+                          console.error("Failed to update cart quantity:", error);
+                        }
                       }}
                       onRemove={async (productId) => {
-                        await removeItem(productId);
-                        await loadCart();
+                        const removedItem = cartItems.find(
+                          (item) => item.productId === productId,
+                        );
+                        if (!removedItem) return;
+
+                        dispatch(
+                          incrementCartItemCount(-removedItem.quantity),
+                        );
+                        try {
+                          await removeItem(productId);
+                          dispatch(
+                            removeAppStateId({
+                              collection: "cart_item_ids",
+                              id: removedItem.id,
+                            }),
+                          );
+                          await loadCart();
+                        } catch (error) {
+                          dispatch(
+                            incrementCartItemCount(removedItem.quantity),
+                          );
+                          console.error("Failed to remove cart item:", error);
+                        }
                       }}
                     />
                   ),
@@ -180,6 +239,7 @@ export default function CartPage() {
                 onClick={async () => {
                   await clear();
                   setCartItems([]);
+                  dispatch(clearAppStateCollection("cart_item_ids"));
                 }}
               >
                 Clear cart

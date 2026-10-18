@@ -1,3 +1,4 @@
+"use server"
 import { axios_instance } from "@/axios";
 import { AdminOverview, OrdersOverview } from "@/types/overview.type";
 import type { Response as ApiResponse } from "@/types/response";

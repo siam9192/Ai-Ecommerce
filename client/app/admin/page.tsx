@@ -1,9 +1,15 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { getOrders, type Order } from "@/api-services/order.api.services";
 import { getAdminOverview } from "@/api-services/overview.api.services";
 import { getProducts } from "@/api-services/products.api.services";
 import { getUsers } from "@/api-services/user.api.services";
+import type { Product } from "@/types/product.type";
+import type { User } from "@/types/user.type";
 import AppStatePageTracker from "@/components/shared/app-state-page-tracker";
 import { FiBox, FiDollarSign, FiShoppingBag, FiUsers } from "react-icons/fi";
+import { useAppSelector } from "@/redux/hooks";
 
 export interface AdminOverview {
   total_revenue: number;
@@ -29,34 +35,56 @@ function formatMoney(value: number) {
   }).format(value);
 }
 
-export default async function AdminDashboardPage() {
-  const [
-    admin_overview_response,
-    orders_response,
-    products_response,
-    users_response,
-  ] = await Promise.all([
-    getAdminOverview(),
-    getOrders(),
-    getProducts(),
-    getUsers(),
-  ]);
+const emptyOverview: AdminOverview = {
+  total_revenue: 0,
+  products_count: 0,
+  products_active: 0,
+  products_in_stock: 0,
+  orders_count: 0,
+  customers_count: 0,
+  pending_orders: 0,
+};
 
-  const admin_overview: AdminOverview = admin_overview_response?.data ?? {
-    total_revenue: 0,
-    products_count: 0,
-    products_active: 0,
-    products_in_stock: 0,
-    orders_count: 0,
-    customers_count: 0,
-    pending_orders: 0,
-  };
+export default function AdminDashboardPage() {
+  const refreshToggle = useAppSelector(
+    (state) => state.appState.state_update_toggle,
+  );
+  const [admin_overview, setAdminOverview] = useState(emptyOverview);
+  const [error, setError] = useState("");
 
-  const orders: Order[] = orders_response?.success ? orders_response.data : [];
+  useEffect(() => {
+    let isCurrent = true;
 
-  const products = products_response?.success ? products_response.data : [];
+    const loadDashboard = async () => {
+      try {
+        const [overviewResponse] =
+          await Promise.all([
+            getAdminOverview(),
+  
+          ]);
 
-  const customers = users_response?.success ? users_response.data : [];
+        if (
+          !overviewResponse.success 
+        ) {
+          throw new Error("One or more admin dashboard data requests failed.");
+        }
+
+        if (!isCurrent) return;
+        setAdminOverview(overviewResponse.data);
+        setError("");
+      } catch (requestError) {
+        console.error("Failed to load admin dashboard data:", requestError);
+        if (isCurrent) {
+          setError("Dashboard data could not be refreshed. Please try again.");
+        }
+      }
+    };
+
+    void loadDashboard();
+    return () => {
+      isCurrent = false;
+    };
+  }, [refreshToggle]);
 
   const overviewCards = [
     {
@@ -89,32 +117,20 @@ export default async function AdminDashboardPage() {
     },
   ];
 
-  const recentOrders = [...orders]
-    .sort(
-      (a: Order, b: Order) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    )
-    .slice(0, 4);
-
-  const topProducts = [...products]
-    .sort((a, b) => Number(b.main_price || 0) - Number(a.main_price || 0))
-    .slice(0, 4)
-    .map((product) => ({
-      name: product.name,
-      sales: Number(product.available_stock || 0),
-      revenue: formatMoney(
-        Number(product.main_price || 0) * Number(product.available_stock || 0),
-      ),
-    }));
+ 
 
   return (
     <>
-      <AppStatePageTracker
-        page="orders"
-        ids={orders.map((order: Order) => order.id)}
-      />
 
       <div className="space-y-8">
+        {error && (
+          <p
+            className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            role="alert"
+          >
+            {error}
+          </p>
+        )}
         <header className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>

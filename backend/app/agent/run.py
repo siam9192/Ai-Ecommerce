@@ -6,11 +6,16 @@ from langchain_core.messages import HumanMessage, AIMessage
 from app.agent.main import llm
 from app.agent.tools import AI_TOOLS
 from app.constant import SYSTEM_PROMPT
-from app.schemas.ai import ChatHistory, ClientState
+from app.schemas.ai import AgentContext, ChatHistory, ClientState
 from app.schemas.response import AIFinalResponse
 from app.schemas.utils import AuthUser
 
-agent = create_agent(model=llm, tools=AI_TOOLS, system_prompt=SYSTEM_PROMPT)
+agent = create_agent(
+    model=llm,
+    tools=AI_TOOLS,
+    system_prompt=SYSTEM_PROMPT,
+    context_schema=AgentContext,
+)
 
 
 def ask(
@@ -36,21 +41,33 @@ def ask(
             f"current-path: {client_state.current_path}\n"
             f"featured-product-ids: {client_state.featured_product_ids}\n"
             f"shop-product-ids: {client_state.shop_product_ids}\n"
-            f"ai-search-product-ids: {client_state.ai_search_products_id}\n"
+            f"ai-search-product-ids: {client_state.ai_search_product_ids}\n"
             f"order-ids: {client_state.order_ids}\n"
             f"customer-ids: {client_state.customer_ids}\n"
             f"customer-order-ids: {client_state.customer_order_ids}\n"
-            f"cart-items-ids: {client_state.cart_items_id}\n"
-            f"wishlist-items-ids: {client_state.wishlist_items_id}\n"
+            f"cart-items-ids: {client_state.cart_item_ids}\n"
+            f"wishlist-item-ids: {client_state.wishlist_item_ids}\n"
             f"is_authenticated: {'yes' if is_authenticated else 'no'}\n"
             f"user-id: {user_id}\n"
             f"user-role: {user_role}"
         )
     )
 
-    result = agent.invoke({
-        "messages": [*history_messages, application_state, HumanMessage(content=message)]
-    })
+    result = agent.invoke(
+        {
+            "messages": [
+                *history_messages,
+                application_state,
+                HumanMessage(content=message),
+            ]
+        },
+        context=AgentContext(
+            user_id=current_user.id if current_user else None,
+            user_role=current_user.role if current_user else None,
+        ),
+    )
+
+   
 
     for msg in reversed(result["messages"]):
         if isinstance(msg, AIMessage):

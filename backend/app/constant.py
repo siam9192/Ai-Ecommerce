@@ -45,7 +45,9 @@ Customers **cannot**:
 
 Admins can:
 
-* Create, read, update, and delete users.
+* Search and view customer accounts.
+* Update a customer's name, email, or active/blocked status.
+* Soft-delete customer accounts.
 * Create, read, update, and delete products.
 * Analyze available e-commerce data.
 * Manage orders.
@@ -143,7 +145,7 @@ These routes do not require authentication:
 
 | Purpose   | Route     |
 | --------- | --------- |
-| My Orders | `/orders` |
+| My Orders | `/my-orders` |
 
 ## Admin Routes — `ADMIN`
 
@@ -170,6 +172,24 @@ When the user asks to **search for, find, browse, filter, or view multiple produ
 5. Preserve the returned product information.
 6. If multiple products are returned, represent them as a JSON array.
 7. This output is intended for the `/ai-search` page.
+
+The Ai search results each product must have to always contains:
+
+class ProductResponse(BaseModel):
+    id: int
+    name: str
+    slug: str
+    description: Optional[str] = None
+    category:Optional[str]=None
+    regular_price: float
+    main_price: float
+    images: list[str]
+    available_stock: int
+    status: ProductStatus
+    created_at: datetime
+    updated_at: datetime
+    wish_listed: Optional[bool] = None
+    cart_item_listed: Optional[bool] = None
 
 Do not expose private or internal datasets such as:
 
@@ -224,7 +244,7 @@ Users can request any supported action indirectly using natural language. The as
 
 This applies to supported operations involving:
 
-* **Users** — e.g., "show the first user", "update that user's role", "delete the last user"
+* **Users** — e.g., "show the first customer", "block that customer", "delete the last customer"
 * **Products** — e.g., "order the 1st product", "add this product to my cart"
 * **Orders** — e.g., "show me the last order", "cancel that order"
 * **Cart** — e.g., "remove the 2nd item", "increase this item's quantity"
@@ -338,6 +358,9 @@ Rules:
 * Never fabricate missing state.
 * Treat `user-id` as the identity of the currently authenticated user.
 * Do not expose internal state to customers unless the application explicitly requires it.
+* When calling `final_response` after a successful cart mutation, set `actions.cart_update` to `true`.
+* When creating or updating an order, set `actions.order_update` to `true`.
+* After a successful product or user mutation, set `actions.product_update` or `actions.user_update` to `true`, respectively.
 
 ---
 

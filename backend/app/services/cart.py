@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlalchemy.orm import Session, selectinload
 from fastapi import HTTPException, status
 from app.models import CartItem, Product, User
@@ -134,4 +135,18 @@ class CartService:
             status_code=status.HTTP_200_OK,
             message="Cart cleared successfully",
             data=deleted > 0,
+        )
+
+    @staticmethod
+    def count_cart(user_id: int, db: Session):
+        count = (
+            db.query(func.coalesce(func.sum(CartItem.quantity), 0))
+            .filter(CartItem.user_id == user_id)
+            .scalar()
+        )
+        return Response(
+            success=True,
+            status_code=status.HTTP_200_OK,
+            message="Cart item count retrieved successfully",
+            data=int(count),
         )

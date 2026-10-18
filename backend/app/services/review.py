@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import status
-from app.models import Product, Review, User, OrderItem
+from app.models import Product, Review, Order, OrderItem
+from app.models.order import OrderStatus
 from app.schemas.review import AddReviewPayload, UpdateReviewPayload
 from app.schemas.utils import AuthUser, Response
 from app.agent.main import llm
@@ -64,20 +65,40 @@ class ReviewService:
     def add_review(user_id: int, payload: AddReviewPayload, db: Session):
         if db.query(Product).filter(Product.id == payload.product_id).first() is None:
             raise ValueError("Product not found")
-        if (
+        existing_review = (
             db.query(Review)
-            .filter(Review.user_id == user_id, Review.product_id == payload.product_id)
+            .filter(
+                Review.user_id == user_id,
+                Review.product_id == payload.product_id,
+            )
+            .first()
+        )
+        if existing_review is not None:
+            return Response(
+                success=False,
+                status_code=status.HTTP_409_CONFLICT,
+                message="You have already reviewed this product",
+                data=None,
+            )
+
+        has_delivered_order = (
+            db.query(OrderItem)
+            .join(Order, Order.id == OrderItem.order_id)
+            .filter(
+                Order.customer_id == user_id,
+                OrderItem.product_id == payload.product_id,
+                Order.status == OrderStatus.DELIVERED,
+            )
             .first()
             is not None
-        ):
-            raise ValueError("User already reviewed this product")
-
-        has_order = db.query(OrderItem).filter(
-            OrderItem.product_id == payload.product_id).filter_by()
-
-        is_verified = False
-        if (has_order is not None):
-            is_verified = True
+        )
+        if not has_delivered_order:
+            return Response(
+                success=False,
+                status_code=status.HTTP_403_FORBIDDEN,
+                message="You can review a product after it has been delivered",
+                data=None,
+            )
 
         structured_llm = llm.with_structured_output(ReviewAnalysis)
 
@@ -102,7 +123,7 @@ class ReviewService:
             rating=payload.rating,
             comment=payload.comment,
             reaction_type=output.reaction_type,
-            is_verified=is_verified
+            is_verified=has_delivered_order
         )
         db.add(review)
         db.commit()

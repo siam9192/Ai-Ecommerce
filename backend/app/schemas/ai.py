@@ -2,6 +2,12 @@ from pydantic import BaseModel, Field
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
+from app.models.users import UserRole
+
+
+class AgentContext(BaseModel):
+    user_id: int | None = None
+    user_role: UserRole | None = None
 
 
 class ClientState(BaseModel):

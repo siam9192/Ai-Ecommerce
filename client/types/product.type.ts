@@ -18,3 +18,8 @@ export interface Product {
   created_at: string;
   updated_at: string;
 }
+
+export enum ProductStatus {
+  ACTIVE = "active",
+  INACTIVE = "inactive"
+}

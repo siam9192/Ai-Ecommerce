@@ -18,6 +18,18 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Product image uploads
+
+Admin product image uploads use ImgBB. Add an ImgBB API key to the server-side
+environment before starting the app:
+
+```env
+IMGBB_API_KEY=your_imgbb_api_key
+```
+
+Keep this key private; do not prefix it with `NEXT_PUBLIC_`. Product image uploads
+are limited to 10 MB per image.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

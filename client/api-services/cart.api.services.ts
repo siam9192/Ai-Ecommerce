@@ -14,6 +14,12 @@ export async function getCart(): Promise<ApiResponse<CartItem[]>> {
   return response.data;
 }
 
+export async function getCartCount(): Promise<ApiResponse<number>> {
+  const response =
+    await axios_instance.get<ApiResponse<number>>("/cart/count");
+  return response.data;
+}
+
 export async function getCartItem(
   productId: number,
 ): Promise<ApiResponse<CartItem | null>> {

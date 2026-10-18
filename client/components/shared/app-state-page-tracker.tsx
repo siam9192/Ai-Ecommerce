@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import {
   clearAiSearchProductsIds,
@@ -56,14 +56,19 @@ export default function AppStatePageTracker({
   ids,
 }: AppStatePageTrackerProps) {
   const dispatch = useDispatch();
+  const idsKey = ids.join(",");
+  const trackedIds = useMemo(
+    () => (idsKey ? idsKey.split(",").map(Number) : []),
+    [idsKey],
+  );
 
-  useEffect(() => {
-    dispatch(pageActions[page][0](ids));
+  useLayoutEffect(() => {
+    dispatch(pageActions[page][0](trackedIds));
 
     return () => {
       dispatch(pageActions[page][1]());
     };
-  }, [dispatch, ids, page]);
+  }, [dispatch, page, trackedIds]);
 
   return null;
 }

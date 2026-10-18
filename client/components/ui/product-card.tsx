@@ -1,28 +1,42 @@
 "use client";
 
-import { Product } from "@/types/product.type";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { FiHeart, FiShoppingCart, FiStar } from "react-icons/fi";
-import { useDispatch } from "react-redux";
 import { addToCart } from "@/redux/features/cart-slice";
+import {
+  addAppStateId,
+  incrementCartItemCount,
+} from "@/redux/features/appState-slice";
+import { useAppDispatch } from "@/redux/hooks";
 import { addItem } from "@/api-services/cart.api.services";
 import {
   addItem as addWishlistItem,
   removeItem as removeWishlistItem,
 } from "@/api-services/wishlist.api.services";
 interface Props {
-  product: Product;
+  product: {
+    id: number;
+    name: string;
+    slug: string;
+    main_price: number;
+    regular_price: number;
+    images: string[];
+    available_stock: number;
+    rating?: number;
+    category?: string | null;
+    wish_listed?: boolean | null;
+  };
 }
 function ProductCard({ product }: Props) {
   const [isAdding, setIsAdding] = React.useState(false);
   const [addError, setAddError] = React.useState("");
   const [isWishlisted, setIsWishlisted] = React.useState(product.wish_listed);
   const [isUpdatingWishlist, setIsUpdatingWishlist] = React.useState(false);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const hasStock = product.available_stock > 0;
-
+  const rating = product.rating ?? 0;
   const handleAddToCart = async () => {
     if (!hasStock || isAdding) return;
 
@@ -30,7 +44,14 @@ function ProductCard({ product }: Props) {
     setAddError("");
 
     try {
-      await addItem({ product_id: product.id, quantity: 1 });
+      const response = await addItem({ product_id: product.id, quantity: 1 });
+      dispatch(
+        addAppStateId({
+          collection: "cart_item_ids",
+          id: response.data.id,
+        }),
+      );
+      dispatch(incrementCartItemCount(1));
 
       dispatch(
         addToCart({
@@ -58,7 +79,13 @@ function ProductCard({ product }: Props) {
         await removeWishlistItem({ product_id: product.id });
         setIsWishlisted(false);
       } else {
-        await addWishlistItem({ product_id: product.id });
+        const response = await addWishlistItem({ product_id: product.id });
+        dispatch(
+          addAppStateId({
+            collection: "wishlist_item_ids",
+            id: response.data.id,
+          }),
+        );
         setIsWishlisted(true);
       }
     } catch {
@@ -73,12 +100,18 @@ function ProductCard({ product }: Props) {
       {/* Image */}
       <Link href={`/products/${product.slug}`} className="block">
         <div className="relative aspect-square overflow-hidden bg-muted">
-          <Image
-            src={product.images[0]}
-            alt={product.name}
-            fill
-            className="object-cover transition duration-500 group-hover:scale-105"
-          />
+          {product.images[0] ? (
+            <Image
+              src={product.images[0]}
+              alt={product.name}
+              fill
+              className="object-cover transition duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              No image available
+            </div>
+          )}
           <button
             type="button"
             onClick={handleWishlistToggle}
@@ -100,22 +133,24 @@ function ProductCard({ product }: Props) {
 
       {/* Content */}
       <div className="p-4">
-        <div className="mb-2 flex items-center gap-1 text-sm">
-          <div className="flex" aria-label={`${product.rating} out of 5 stars`}>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <FiStar
-                key={index}
-                size={15}
-                className={
-                  index < Math.round(product.rating)
-                    ? "fill-yellow-400 text-yellow-400"
-                    : "text-muted-foreground"
-                }
-              />
-            ))}
+        {rating > 0 && (
+          <div className="mb-2 flex items-center gap-1 text-sm">
+            <div className="flex" aria-label={`${rating} out of 5 stars`}>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <FiStar
+                  key={index}
+                  size={15}
+                  className={
+                    index < Math.round(rating)
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "text-muted-foreground"
+                  }
+                />
+              ))}
+            </div>
+            <span className="font-medium">{rating}</span>
           </div>
-          <span className="font-medium">{product.rating}</span>
-        </div>
+        )}
 
         {product.category && (
           <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-primary">
